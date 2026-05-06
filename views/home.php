@@ -16,12 +16,14 @@
                     <?php if (isLoggedIn()): ?>
                         <li><a href="index.php?page=menu">Menu</a></li>
                         <li><a href="index.php?page=dashboard">Dashboard</a></li>
+                        <?php if (isAdmin()): ?>
+                            <li><a href="index.php?page=admin">Admin</a></li>
+                        <?php endif; ?>
                         <li><a href="index.php?page=logout">Logout</a></li>
                     <?php else: ?>
                         <li><a href="index.php?page=login">Login</a></li>
                         <li><a href="index.php?page=register">Register</a></li>
                     <?php endif; ?>
-                    <li><a href="index.php?page=admin_login">Admin Login</a></li>
                 </ul>
             </div>
         </nav>

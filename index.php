@@ -32,10 +32,6 @@ switch ($page) {
         require_once 'controllers/dashboard.php';
         showDashboard();
         break;
-    case 'admin_login':
-        require_once 'admin/controllers/auth.php';
-        adminLogin();
-        break;
     case 'admin':
         require_once 'admin/controllers/dashboard.php';
         showAdminDashboard();

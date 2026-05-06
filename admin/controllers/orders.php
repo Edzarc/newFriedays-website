@@ -23,6 +23,6 @@ function showOrders() {
 
     $orders = getAllOrders($filters);
 
-    include '../views/orders.php';
+    include 'views/orders.php';
 }
 ?>

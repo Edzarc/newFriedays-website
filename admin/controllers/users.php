@@ -6,6 +6,6 @@ function showUsers() {
 
     $users = getAllUsers();
 
-    include '../views/users.php';
+    include 'views/users.php';
 }
 ?>

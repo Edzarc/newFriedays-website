@@ -12,7 +12,7 @@
             <div class="nav-container">
                 <h1 class="logo">Friedays Bocaue - Admin</h1>
                 <ul class="nav-menu">
-                    <li><a href="../index.php?page=admin" class="active">Dashboard</a></li>
+                    <li><a href="index.php?page=admin" class="active">Dashboard</a></li>
                     <li><a href="../index.php?page=admin_orders">Orders</a></li>
                     <li><a href="../index.php?page=admin_users">Users</a></li>
                     <li><a href="../index.php?page=admin_analytics">Analytics</a></li>

@@ -15,6 +15,9 @@
                     <li><a href="index.php">Home</a></li>
                     <li><a href="index.php?page=menu">Menu</a></li>
                     <li><a href="index.php?page=dashboard" class="active">Dashboard</a></li>
+                    <?php if (isAdmin()): ?>
+                        <li><a href="index.php?page=admin">Admin</a></li>
+                    <?php endif; ?>
                     <li><a href="index.php?page=logout">Logout</a></li>
                 </ul>
             </div>
