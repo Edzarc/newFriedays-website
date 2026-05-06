@@ -1,5 +1,5 @@
 <?php
-require_once '../../includes/functions.php';
+require_once 'includes/functions.php';
 
 function showAnalytics() {
     requireAdmin();
@@ -9,6 +9,6 @@ function showAnalytics() {
 
     $analytics = getAnalyticsData($dateFrom, $dateTo);
 
-    include '../views/analytics.php';
+    include 'admin/views/analytics.php';
 }
 ?>

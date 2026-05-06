@@ -1,9 +1,9 @@
 <?php
-require_once 'includes\functions.php';
+require_once 'includes/functions.php';
 
 function showAdminDashboard() {
     requireAdmin();
 
-    include 'views/dashboard.php';
+    include 'admin/views/dashboard.php';
 }
 ?>

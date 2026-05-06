@@ -238,20 +238,22 @@ function getAllOrders($filters = []) {
 function getAnalyticsData($dateFrom = null, $dateTo = null) {
     global $pdo;
 
-    $dateCondition = "";
+    $orderDateCondition = "";
+    $joinDateCondition = "";
     $params = [];
     if ($dateFrom && $dateTo) {
-        $dateCondition = "WHERE DATE(created_at) BETWEEN ? AND ?";
+        $orderDateCondition = "WHERE DATE(orders.created_at) BETWEEN ? AND ?";
+        $joinDateCondition = "WHERE DATE(o.created_at) BETWEEN ? AND ?";
         $params = [$dateFrom, $dateTo];
     }
 
     // Total revenue
-    $stmt = $pdo->prepare("SELECT SUM(total_amount) as total_revenue FROM orders $dateCondition");
+    $stmt = $pdo->prepare("SELECT SUM(total_amount) as total_revenue FROM orders $orderDateCondition");
     $stmt->execute($params);
     $revenue = $stmt->fetch()['total_revenue'] ?? 0;
 
     // Order count
-    $stmt = $pdo->prepare("SELECT COUNT(*) as order_count FROM orders $dateCondition");
+    $stmt = $pdo->prepare("SELECT COUNT(*) as order_count FROM orders $orderDateCondition");
     $stmt->execute($params);
     $orderCount = $stmt->fetch()['order_count'] ?? 0;
 
@@ -264,7 +266,7 @@ function getAnalyticsData($dateFrom = null, $dateTo = null) {
         FROM order_items oi
         JOIN products p ON oi.product_id = p.id
         JOIN orders o ON oi.order_id = o.id
-        $dateCondition
+        $joinDateCondition
         GROUP BY p.id, p.name
         ORDER BY total_quantity DESC
         LIMIT 5

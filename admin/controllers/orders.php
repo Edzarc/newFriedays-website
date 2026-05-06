@@ -1,5 +1,5 @@
 <?php
-require_once '../../includes/functions.php';
+require_once 'includes/functions.php';
 
 function showOrders() {
     requireAdmin();
@@ -23,6 +23,6 @@ function showOrders() {
 
     $orders = getAllOrders($filters);
 
-    include 'views/orders.php';
+    include 'admin/views/orders.php';
 }
 ?>

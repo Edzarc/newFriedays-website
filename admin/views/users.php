@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Users Management - Friedays Bocaue</title>
-    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="public/css/style.css">
 </head>
 <body>
     <header>
@@ -12,11 +12,11 @@
             <div class="nav-container">
                 <h1 class="logo">Friedays Bocaue - Admin</h1>
                 <ul class="nav-menu">
-                    <li><a href="../index.php?page=admin">Dashboard</a></li>
-                    <li><a href="../index.php?page=admin_orders">Orders</a></li>
-                    <li><a href="../index.php?page=admin_users" class="active">Users</a></li>
-                    <li><a href="../index.php?page=admin_analytics">Analytics</a></li>
-                    <li><a href="../index.php?page=logout">Logout</a></li>
+                    <li><a href="index.php?page=admin">Dashboard</a></li>
+                    <li><a href="index.php?page=admin_orders">Orders</a></li>
+                    <li><a href="index.php?page=admin_users" class="active">Users</a></li>
+                    <li><a href="index.php?page=admin_analytics">Analytics</a></li>
+                    <li><a href="index.php?page=logout">Logout</a></li>
                 </ul>
             </div>
         </nav>
