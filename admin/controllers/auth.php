@@ -1,15 +1,16 @@
 <?php
-require_once '../../includes/functions.php';
+require_once 'C:\xampp\htdocs\newFriedays-website\includes\functions.php';
 
 function adminLogin() {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = sanitizeInput($_POST['email']);
         $password = $_POST['password'];
 
-        // Check admin credentials
-        if ($email === 'admin@friedays.com' && password_verify($password, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi')) {
-            $_SESSION['admin'] = true;
-            $_SESSION['user_id'] = 1; // Admin user ID
+        $user = getUserByEmail($email);
+
+        if ($user && $user['role'] === 'admin' && password_verify($password, $user['password_hash'])) {
+            $_SESSION['role'] = 'admin';
+            $_SESSION['user_id'] = $user['id'];
             header('Location: index.php?page=admin');
             exit();
         } else {
@@ -17,7 +18,7 @@ function adminLogin() {
             include '../views/login.php';
         }
     } else {
-        include '../views/login.php';
+        include 'views\login.php';
     }
 }
 ?>

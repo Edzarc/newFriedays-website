@@ -21,9 +21,7 @@
                         <li><a href="index.php?page=login">Login</a></li>
                         <li><a href="index.php?page=register">Register</a></li>
                     <?php endif; ?>
-                    <?php if (isAdmin()): ?>
-                        <li><a href="index.php?page=admin">Admin</a></li>
-                    <?php endif; ?>
+                    <li><a href="index.php?page=admin_login">Admin Login</a></li>
                 </ul>
             </div>
         </nav>

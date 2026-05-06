@@ -17,7 +17,7 @@
 }
 
 /* Reset and Base Styles */
-* {
+* { 
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -91,12 +91,14 @@ header {
     color: var(--clr-primary);
     font-size: 1.5rem;
     font-weight: bold;
+    margin-left: 20px;
 }
 
 .nav-menu {
     display: flex;
     list-style: none;
     gap: 2rem;
+    margin-right: 10px;
 }
 
 .nav-menu a {
@@ -212,6 +214,7 @@ header {
     display: flex;
     gap: 2rem;
     padding: 2rem 0;
+    margin-left: 10px;
 }
 
 .menu-content {
@@ -321,6 +324,14 @@ header {
     height: fit-content;
     position: sticky;
     top: 100px;
+}
+
+@media (max-width: 768px) {
+    .cart-sidebar {
+        position: relative;
+        top: 0;
+        width: 100%;
+    }
 }
 
 .cart-header {

@@ -40,6 +40,7 @@ function register() {
             $stmt = $pdo->prepare("INSERT INTO users (name, email, password_hash, phone, address) VALUES (?, ?, ?, ?, ?)");
             if ($stmt->execute([$name, $email, $passwordHash, $phone, $address])) {
                 $_SESSION['user_id'] = $pdo->lastInsertId();
+                $_SESSION['role'] = 'customer';
                 header('Location: index.php?page=menu');
                 exit();
             } else {
@@ -63,6 +64,7 @@ function login() {
 
         if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['user_id'] = $user['id'];
+            $_SESSION['role'] = $user['role'];
             header('Location: index.php?page=menu');
             exit();
         } else {

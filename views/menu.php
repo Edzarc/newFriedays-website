@@ -43,7 +43,7 @@
                     <?php foreach ($products as $product): ?>
                         <div class="product-card" data-category="<?php echo htmlspecialchars($product['category']); ?>" data-name="<?php echo htmlspecialchars(strtolower($product['name'])); ?>">
                             <div class="product-image">
-                                <img src="public/images/placeholder.jpg" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                <img src="public\images\Untitled.jpg" alt="<?php echo htmlspecialchars($product['name']); ?>">
                             </div>
                             <div class="product-info">
                                 <h3><?php echo htmlspecialchars($product['name']); ?></h3>
@@ -68,7 +68,7 @@
                 </div>
                 <div class="cart-footer">
                     <div class="cart-total">
-                        <strong>Total: ₱<span id="cart-total">0.00</span></strong>
+                        <strong>Total: <span id="cart-total">0.00</span></strong>
                     </div>
                     <a href="index.php?page=checkout" class="btn btn-primary" id="checkout-btn" style="display: none;">Checkout</a>
                 </div>
@@ -82,6 +82,7 @@
         </div>
     </footer>
 
+    <script src="public/js/main.js"></script>
     <script src="public/js/menu.js"></script>
 </body>
 </html>

@@ -31,7 +31,7 @@ class Cart {
         }
         this.save();
         this.updateUI();
-        showAlert(`${name} added to cart!`);
+        
     }
 
     removeItem(productId) {
