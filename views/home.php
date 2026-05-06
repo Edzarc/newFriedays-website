@@ -35,7 +35,7 @@
                 <h2>Welcome to Friedays Bocaue</h2>
                 <p>Delicious fried chicken and more. Order online for pickup, delivery, or dine-in!</p>
                 <?php if (!isLoggedIn()): ?>
-                    <a href="index.php?page=register" class="btn btn-primary">Get Started</a>
+                    <a href="index.php?page=login" class="btn btn-primary">Get Started</a>
                 <?php else: ?>
                     <a href="index.php?page=menu" class="btn btn-primary">Order Now</a>
                 <?php endif; ?>

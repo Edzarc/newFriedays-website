@@ -278,7 +278,7 @@ function getAnalyticsData($dateFrom = null, $dateTo = null) {
         'total_revenue' => $revenue,
         'order_count' => $orderCount,
         'avg_order_value' => $avgOrderValue,
-        'top_products' => $topProducts
+        'top_products' => $topProducts  
     ];
 }
 
