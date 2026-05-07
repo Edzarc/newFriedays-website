@@ -17,15 +17,24 @@ function showCheckout() {
         }
 
         // Calculate total
-        $totalAmount = 0;
+        $subtotal = 0;
         foreach ($cartItems as $item) {
-            $totalAmount += $item['price'] * $item['quantity'];
+            $subtotal += $item['price'] * $item['quantity'];
         }
 
         // Apply loyalty discount
         $user = getUserById($_SESSION['user_id']);
-        $discount = calculateDiscount($totalAmount, $user['loyalty_tier']);
-        $totalAmount -= $discount;
+        $discount = calculateDiscount($subtotal, $user['loyalty_tier']);
+        $subtotalAfterDiscount = $subtotal - $discount;
+
+        // Add tax
+        $tax = $subtotalAfterDiscount * 0.12;
+
+        // Add delivery fee if applicable
+        $deliveryFee = ($orderType === 'Delivery') ? 50 : 0;
+
+        // Final total
+        $totalAmount = $subtotalAfterDiscount + $tax + $deliveryFee;
 
         // Create order
         $orderId = createOrder($_SESSION['user_id'], $orderType, $paymentMethod, $totalAmount, $cartItems);
