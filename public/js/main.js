@@ -18,12 +18,13 @@ class Cart {
     }
 
     addItem(productId, name, price) {
-        const existingItem = this.items.find(item => item.id === productId);
+        const normalizedId = String(productId);
+        const existingItem = this.items.find(item => String(item.id) === normalizedId);
         if (existingItem) {
             existingItem.quantity += 1;
         } else {
             this.items.push({
-                id: productId,
+                id: normalizedId,
                 name: name,
                 price: parseFloat(price),
                 quantity: 1
@@ -31,21 +32,22 @@ class Cart {
         }
         this.save();
         this.updateUI();
-        
     }
 
     removeItem(productId) {
-        this.items = this.items.filter(item => item.id !== productId);
+        const normalizedId = String(productId);
+        this.items = this.items.filter(item => String(item.id) !== normalizedId);
         this.save();
         this.updateUI();
     }
 
     updateQuantity(productId, quantity) {
+        const normalizedId = String(productId);
         if (quantity <= 0) {
-            this.removeItem(productId);
+            this.removeItem(normalizedId);
             return;
         }
-        const item = this.items.find(item => item.id === productId);
+        const item = this.items.find(item => String(item.id) === normalizedId);
         if (item) {
             item.quantity = quantity;
             this.save();
@@ -91,10 +93,10 @@ class Cart {
                         <div class="cart-item-price">${formatCurrency(item.price)}</div>
                     </div>
                     <div class="cart-item-controls">
-                        <button class="quantity-btn" onclick="cart.updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                        <button type="button" class="quantity-btn" onclick="cart.updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
                         <span>${item.quantity}</span>
-                        <button class="quantity-btn" onclick="cart.updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
-                        <span class="remove-btn" onclick="cart.removeItem(${item.id})">&times;</span>
+                        <button type="button" class="quantity-btn" onclick="cart.updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
+                        <button type="button" class="remove-btn" onclick="cart.removeItem('${item.id}')">&times;</button>
                     </div>
                 `;
                 cartItems.appendChild(itemElement);
