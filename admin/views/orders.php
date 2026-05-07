@@ -31,7 +31,7 @@
                 <h2>Orders Management</h2>
 
                 <div class="filters-section">
-                    <form action="../index.php" method="get" class="filters-form">
+                    <form action="index.php" method="get" class="filters-form">
                         <input type="hidden" name="page" value="admin_orders">
                         <div class="filter-row">
                             <div class="filter-group">

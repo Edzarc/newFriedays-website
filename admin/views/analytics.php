@@ -32,7 +32,7 @@
                 <h2>Analytics & Reports</h2>
 
                 <div class="analytics-filters">
-                    <form action="../index.php" method="get" class="filters-form">
+                    <form action="index.php" method="get" class="filters-form">
                         <input type="hidden" name="page" value="admin_analytics">
                         <div class="filter-row">
                             <div class="filter-group">
@@ -107,6 +107,6 @@
         </div>
     </footer>
 
-    <script src="../public/js/admin-analytics.js"></script>
+    <script src="public/js/admin-analytics.js"></script>
 </body>
 </html>
