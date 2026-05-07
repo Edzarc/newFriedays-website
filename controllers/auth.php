@@ -65,7 +65,7 @@ function login() {
         if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['role'] = $user['role'];
-            header('Location: index.php?page=menu');
+            header('Location: index.php?page=menu&clear_cart=1');
             exit();
         } else {
             $error = "Invalid email or password.";
@@ -78,7 +78,7 @@ function login() {
 
 function logout() {
     session_destroy();
-    header('Location: index.php');
+    header('Location: index.php?clear_cart=1');
     exit();
 }
 ?>

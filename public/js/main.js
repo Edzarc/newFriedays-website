@@ -121,6 +121,19 @@ class Cart {
     }
 }
 
+function shouldClearCart() {
+    return new URLSearchParams(window.location.search).get('clear_cart') === '1';
+}
+
+function clearCartStorage() {
+    localStorage.removeItem('friedays_cart');
+    localStorage.removeItem('checkout_cart');
+}
+
+if (shouldClearCart()) {
+    clearCartStorage();
+}
+
 // Initialize cart
 const cart = new Cart();
 
