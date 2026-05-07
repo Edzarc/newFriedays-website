@@ -36,7 +36,7 @@
 
                 <div class="queue-actions">
                     <a href="index.php?page=menu" class="btn btn-secondary">Order More</a>
-                    <a href="index.php?page=dashboard" class="btn btn-primary">View Dashboard</a>
+                    <a href="index.php?page=profile" class="btn btn-primary">View Profile</a>
                 </div>
             </div>
         </div>

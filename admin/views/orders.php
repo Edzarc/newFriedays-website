@@ -14,6 +14,7 @@
                 <ul class="nav-menu">
                     <li><a href="index.php">Home</a></li>
                     <li><a href="index.php?page=menu">Menu</a></li>
+                    <li><a href="index.php?page=profile">Profile</a></li>
                     <li><a href="index.php?page=admin">Dashboard</a></li>
                     <li><a href="index.php?page=admin_orders" class="active">Orders</a></li>
                     <li><a href="index.php?page=admin_users">Users</a></li>

@@ -28,9 +28,9 @@ switch ($page) {
         require_once 'controllers/queue.php';
         showQueue();
         break;
-    case 'dashboard':
-        require_once 'controllers/dashboard.php';
-        showDashboard();
+    case 'profile':
+        require_once 'controllers/profile.php';
+        showProfile();
         break;
     case 'admin':
         require_once 'admin/controllers/dashboard.php';

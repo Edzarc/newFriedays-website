@@ -15,6 +15,7 @@
                     <?php if (isset($_GET['page']) && strpos($_GET['page'], 'admin') === 0): ?>
                         <li><a href="index.php">Home</a></li>
                         <li><a href="index.php?page=menu">Menu</a></li>
+                        <li><a href="index.php?page=profile">Profile</a></li>
                         <li><a href="index.php?page=admin" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin') ? 'class="active"' : ''; ?>>Dashboard</a></li>
                         <li><a href="index.php?page=admin_orders" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin_orders') ? 'class="active"' : ''; ?>>Orders</a></li>
                         <li><a href="index.php?page=admin_users" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin_users') ? 'class="active"' : ''; ?>>Users</a></li>
@@ -24,7 +25,7 @@
                         <li><a href="index.php" <?php echo (!isset($_GET['page']) || $_GET['page'] == '') ? 'class="active"' : ''; ?>>Home</a></li>
                         <?php if (isLoggedIn()): ?>
                             <li><a href="index.php?page=menu" <?php echo (isset($_GET['page']) && $_GET['page'] == 'menu') ? 'class="active"' : ''; ?>>Menu</a></li>
-                            <li><a href="index.php?page=dashboard" <?php echo (isset($_GET['page']) && $_GET['page'] == 'dashboard') ? 'class="active"' : ''; ?>>Dashboard</a></li>
+                            <li><a href="index.php?page=profile" <?php echo (isset($_GET['page']) && $_GET['page'] == 'profile') ? 'class="active"' : ''; ?>>Profile</a></li>
                             <?php if (isAdmin()): ?>
                                 <li><a href="index.php?page=admin" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin') ? 'class="active"' : ''; ?>>Admin</a></li>
                             <?php endif; ?>

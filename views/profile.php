@@ -1,4 +1,4 @@
-<?php $pageTitle = 'Dashboard - Friedays Bocaue'; include 'includes/header.php'; ?>
+<?php $pageTitle = 'Profile - Friedays Bocaue'; include 'includes/header.php'; ?>
 
     <main>
         <div class="container">
