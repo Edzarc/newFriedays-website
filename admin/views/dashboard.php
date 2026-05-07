@@ -1,26 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Friedays Bocaue</title>
-    <link rel="stylesheet" href="public/css/style.css">
-</head>
-<body>
-    <header>
-        <nav>
-            <div class="nav-container">
-                <h1 class="logo">Friedays Bocaue - Admin</h1>
-                <ul class="nav-menu">
-                    <li><a href="index.php?page=admin" class="active">Dashboard</a></li>
-                    <li><a href="index.php?page=admin_orders">Orders</a></li>
-                    <li><a href="index.php?page=admin_users">Users</a></li>
-                    <li><a href="index.php?page=admin_analytics">Analytics</a></li>
-                    <li><a href="index.php?page=logout">Logout</a></li>
-                </ul>
-            </div>
-        </nav>
-    </header>
+<?php $pageTitle = 'Admin Dashboard - Friedays Bocaue'; include 'includes/header.php'; ?>
 
     <main>
         <div class="container">
@@ -75,13 +53,5 @@
         </div>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 Friedays Bocaue. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <script src="public/js/main.js"></script>
+<?php include 'includes/footer.php'; ?>
     <script src="public/js/admin.js"></script>
-</body>
-</html>

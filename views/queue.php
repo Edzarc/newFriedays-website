@@ -1,25 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Queue Status - Friedays Bocaue</title>
-    <link rel="stylesheet" href="public/css/style.css">
-</head>
-<body>
-    <header>
-        <nav>
-            <div class="nav-container">
-                <h1 class="logo">Friedays Bocaue</h1>
-                <ul class="nav-menu">
-                    <li><a href="index.php">Home</a></li>
-                    <li><a href="index.php?page=menu">Menu</a></li>
-                    <li><a href="index.php?page=dashboard">Dashboard</a></li>
-                    <li><a href="index.php?page=logout">Logout</a></li>
-                </ul>
-            </div>
-        </nav>
-    </header>
+<?php $pageTitle = 'Queue Status - Friedays Bocaue'; include 'includes/header.php'; ?>
 
     <main>
         <div class="container">
@@ -63,12 +42,5 @@
         </div>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 Friedays Bocaue. All rights reserved.</p>
-        </div>
-    </footer>
-
+<?php include 'includes/footer.php'; ?>
     <script src="public/js/queue.js"></script>
-</body>
-</html>

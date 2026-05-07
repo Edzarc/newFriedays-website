@@ -12,6 +12,8 @@
             <div class="nav-container">
                 <h1 class="logo">Friedays Bocaue - Admin</h1>
                 <ul class="nav-menu">
+                    <li><a href="index.php">Home</a></li>
+                    <li><a href="index.php?page=menu">Menu</a></li>
                     <li><a href="index.php?page=admin">Dashboard</a></li>
                     <li><a href="index.php?page=admin_orders">Orders</a></li>
                     <li><a href="index.php?page=admin_users" class="active">Users</a></li>
