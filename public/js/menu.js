@@ -10,8 +10,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', function() {
+            console.log('Checkout button clicked, cart items:', cart.items);
             // Store cart items in session/localStorage for checkout
-            localStorage.setItem('checkout_cart', JSON.stringify(cart.getItems()));
+            localStorage.setItem('checkout_cart', JSON.stringify(cart.items));
+            console.log('Set checkout_cart to localStorage');
             window.location.href = 'index.php?page=checkout';
         });
     }

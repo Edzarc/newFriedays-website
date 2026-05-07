@@ -32,6 +32,8 @@ function showCheckout() {
 
         if ($orderId) {
             // Clear cart (in session/localStorage handled by JS)
+            // Note: Since localStorage is client-side, we can't clear it here.
+            // The cart should be cleared on the client side after successful order.
             header('Location: index.php?page=queue');
             exit();
         } else {
