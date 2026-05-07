@@ -558,6 +558,32 @@ header {
     font-weight: 600;
 }
 
+.loyalty-tier-preview {
+    margin-top: 1rem;
+}
+
+.tier-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.tier-preview-card {
+    padding: 1rem;
+    border: 1px solid var(--clr-border);
+    border-radius: var(--border-radius);
+    background: var(--clr-surface);
+}
+
+.tier-preview-card.current-tier {
+    border-color: var(--clr-primary);
+    box-shadow: inset 0 0 0 1px var(--clr-primary);
+}
+
+.tier-preview-card p {
+    margin: 0.5rem 0;
+}
+
 .status {
     padding: 4px 8px;
     border-radius: 4px;

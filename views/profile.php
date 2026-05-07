@@ -28,6 +28,24 @@
                 </div>
 
                 <div class="dashboard-card">
+                    <h3>Explore Loyalty Tiers</h3>
+                    <div class="loyalty-tier-preview">
+                        <div class="tier-preview-grid">
+                            <?php foreach ($loyaltyTiers as $tier): ?>
+                                <div class="tier-preview-card<?php echo $tier['tier_name'] === $user['loyalty_tier'] ? ' current-tier' : ''; ?>">
+                                    <div class="tier-badge tier-<?php echo strtolower($tier['tier_name']); ?>">
+                                        <?php echo htmlspecialchars($tier['tier_name']); ?>
+                                    </div>
+                                    <p><strong>Min Spend:</strong> ₱<?php echo number_format($tier['min_spending_threshold'], 2); ?></p>
+                                    <p><strong>Discount:</strong> <?php echo $tier['discount_percentage']; ?>%</p>
+                                    <p><?php echo htmlspecialchars($tier['benefits']); ?></p>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
                     <h3>Order History</h3>
                     <?php if (empty($orders)): ?>
                         <p>No orders yet. <a href="index.php?page=menu">Start ordering!</a></p>
