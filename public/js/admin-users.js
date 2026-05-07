@@ -1,5 +1,11 @@
 // Admin users management JavaScript
 
+// Utility function for alerts
+function showAlert(message, type = 'info') {
+    // Simple alert for now - could be enhanced with toast notifications
+    alert(message);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // User search
     const searchInput = document.getElementById('user-search');
@@ -38,6 +44,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Delete user functionality
+    document.querySelectorAll('.delete-user').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const userName = this.dataset.userName;
+
+            if (confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+                deleteUser(userId);
+            }
+        });
+    });
+
     if (closeBtn) {
         closeBtn.addEventListener('click', () => modal.style.display = 'none');
     }
@@ -49,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateUserTier(userId, tier) {
-        fetch('../api/admin_update_user_tier.php', {
+        fetch('api/admin_update_user_tier.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -67,6 +85,33 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error updating user tier:', error);
             showAlert('An error occurred while updating the user tier.');
+        });
+    }
+
+    function deleteUser(userId) {
+        fetch('api/admin_delete_user.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: userId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('User deleted successfully!');
+                // Remove the user row from the table
+                const userRow = document.querySelector(`tr[data-user-id="${userId}"]`);
+                if (userRow) {
+                    userRow.remove();
+                }
+            } else {
+                showAlert(data.message || 'Failed to delete user.');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting user:', error);
+            showAlert('An error occurred while deleting the user.');
         });
     }
 

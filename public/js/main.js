@@ -84,23 +84,27 @@ class Cart {
         const cartItems = document.getElementById('cart-items');
         if (cartItems) {
             cartItems.innerHTML = '';
-            this.items.forEach(item => {
-                const itemElement = document.createElement('div');
-                itemElement.className = 'cart-item';
-                itemElement.innerHTML = `
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">${item.name}</div>
-                        <div class="cart-item-price">${formatCurrency(item.price)}</div>
-                    </div>
-                    <div class="cart-item-controls">
-                        <button type="button" class="quantity-btn" onclick="cart.updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
-                        <span>${item.quantity}</span>
-                        <button type="button" class="quantity-btn" onclick="cart.updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
-                        <button type="button" class="remove-btn" onclick="cart.removeItem('${item.id}')">&times;</button>
-                    </div>
-                `;
-                cartItems.appendChild(itemElement);
-            });
+            if (this.items.length === 0) {
+                cartItems.innerHTML = '<div class="empty-cart-message">Your cart is empty. Add some delicious items!</div>';
+            } else {
+                this.items.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'cart-item';
+                    itemElement.innerHTML = `
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">${formatCurrency(item.price)}</div>
+                        </div>
+                        <div class="cart-item-controls">
+                            <button type="button" class="quantity-btn" onclick="cart.updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
+                            <span>${item.quantity}</span>
+                            <button type="button" class="quantity-btn" onclick="cart.updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
+                            <button type="button" class="remove-btn" onclick="cart.removeItem('${item.id}')">&times;</button>
+                        </div>
+                    `;
+                    cartItems.appendChild(itemElement);
+                });
+            }
         }
 
         // Update cart total

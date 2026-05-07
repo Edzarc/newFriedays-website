@@ -68,6 +68,9 @@
                                         <button class="btn btn-small btn-secondary view-orders" data-user-id="<?php echo $user['id']; ?>" data-user-name="<?php echo htmlspecialchars($user['name']); ?>">
                                             View Orders
                                         </button>
+                                        <button class="btn btn-small btn-danger delete-user" data-user-id="<?php echo $user['id']; ?>" data-user-name="<?php echo htmlspecialchars($user['name']); ?>" style="margin-left: 5px;">
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -95,6 +98,6 @@
         </div>
     </footer>
 
-    <script src="../public/js/admin-users.js"></script>
+    <script src="public/js/admin-users.js"></script>
 </body>
 </html>

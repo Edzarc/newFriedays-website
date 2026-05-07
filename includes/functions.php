@@ -70,6 +70,23 @@ function deleteUserAddress($addressId) {
     return $stmt->execute([$addressId]);
 }
 
+function deleteUser($userId) {
+    global $pdo;
+    // First delete related records to maintain referential integrity
+    // Delete user addresses
+    $stmt = $pdo->prepare("DELETE FROM user_addresses WHERE user_id = ?");
+    $stmt->execute([$userId]);
+
+    // Delete user orders (this might be optional depending on business rules)
+    // For now, we'll keep orders for audit purposes, but you could add this:
+    // $stmt = $pdo->prepare("DELETE FROM orders WHERE user_id = ?");
+    // $stmt->execute([$userId]);
+
+    // Finally delete the user
+    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+    return $stmt->execute([$userId]);
+}
+
 function updateUserProfile($userId, $name, $email, $phone, $address) {
     global $pdo;
     $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ?, address = ?, updated_at = NOW() WHERE id = ?");

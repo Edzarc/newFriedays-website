@@ -66,6 +66,15 @@ body {
     background-color: #2d0f06;
 }
 
+.btn-danger {
+    background-color: var(--clr-error);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #b91c1c;
+}
+
 .btn-clear {
     line-height: 1;
     font-size: 14px;
@@ -362,6 +371,16 @@ header {
     max-height: 400px;
     overflow-y: auto;
     margin-bottom: 1rem;
+}
+
+.empty-cart-message {
+    text-align: center;
+    color: var(--clr-text-light);
+    font-style: italic;
+    padding: 2rem 1rem;
+    background: #f9f9f9;
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
 }
 
 .cart-item {
