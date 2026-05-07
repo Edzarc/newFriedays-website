@@ -12,9 +12,25 @@
 
                 <form action="index.php?page=checkout" method="post" id="checkout-form">
                     <input type="hidden" name="cart_items" id="cart-items-input">
+                    <input type="hidden" id="loyalty-discount" value="<?php echo isset($previewDiscountPercentage) ? $previewDiscountPercentage : 0; ?>">
+                    <input type="hidden" id="loyalty-tier" value="<?php echo isset($user) ? htmlspecialchars($user['loyalty_tier']) : ''; ?>">
+                    <input type="hidden" id="free-delivery-threshold" value="<?php echo isset($user) && $user['loyalty_tier'] === 'Silver' ? 500 : 0; ?>">
 
                     <div class="checkout-section">
                         <h3>Order Summary</h3>
+                        <?php if (isset($user) && isset($loyaltyTier)): ?>
+                            <div class="loyalty-info">
+                                <p><strong>Your Loyalty Tier:</strong> <?php echo htmlspecialchars($user['loyalty_tier']); ?></p>
+                                <?php if ($previewDiscountPercentage > 0): ?>
+                                    <p><strong>Discount:</strong> <?php echo $previewDiscountPercentage; ?>% off subtotal</p>
+                                <?php endif; ?>
+                                <?php if ($user['loyalty_tier'] === 'Silver'): ?>
+                                    <p><strong>Free Delivery:</strong> On orders over ₱500</p>
+                                <?php elseif (in_array($user['loyalty_tier'], ['Gold', 'Platinum'])): ?>
+                                    <p><strong>Free Delivery:</strong> On all orders</p>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
                         <div id="order-summary">
                             <!-- Order summary will be populated by JavaScript -->
                         </div>

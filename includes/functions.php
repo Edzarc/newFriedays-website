@@ -113,9 +113,6 @@ function createOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartIte
     // Add to queue
     addToQueue($orderId);
 
-    // Update user spending
-    updateUserSpending($userId, $totalAmount);
-
     return $orderId;
 }
 
@@ -291,8 +288,21 @@ function generateOrderNumber() {
     return 'ORD' . date('YmdHis') . mt_rand(1000, 9999);
 }
 
-function calculateDiscount($totalAmount, $loyaltyTier) {
+function calculateDiscount($totalAmount, $loyaltyTier, $userId = null) {
     $tier = getLoyaltyTierByName($loyaltyTier);
+
+    // Special case: Bronze tier gets 5% off first order only
+    if ($loyaltyTier === 'Bronze' && $userId !== null) {
+        $userOrders = getUserOrders($userId);
+        if (count($userOrders) === 0) {
+            // First order for Bronze user
+            return $totalAmount * 0.05;
+        } else {
+            // Not first order, no discount
+            return 0;
+        }
+    }
+
     return $totalAmount * ($tier['discount_percentage'] / 100);
 }
 ?>

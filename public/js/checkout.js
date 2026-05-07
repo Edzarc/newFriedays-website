@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Populating order summary...');
     // Populate order summary
     const orderSummary = document.getElementById('order-summary');
+    const priceSummary = document.getElementById('price-summary');
     console.log('Order summary element:', orderSummary);
     let subtotal = 0;
 
@@ -36,24 +37,66 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Calculate totals (you might want to get user tier from server)
-    const tax = subtotal * 0.12; // 12% VAT
-    let deliveryFee = 0; // Initialize delivery fee to 0
-    let total = subtotal + tax + deliveryFee;
+    const discountPercentage = parseFloat(document.getElementById('loyalty-discount').value) || 0;
+    const loyaltyTier = document.getElementById('loyalty-tier').value;
+    const freeDeliveryThreshold = parseFloat(document.getElementById('free-delivery-threshold').value) || 0;
+    const discount = subtotal * (discountPercentage / 100);
+    const subtotalAfterDiscount = subtotal - discount;
+    const tax = subtotalAfterDiscount * 0.12; // 12% VAT
+    let deliveryFee = 0;
+    let total = 0;
+
+    // Function to calculate delivery fee
+    function calculateDeliveryFee(orderType) {
+        if (orderType !== 'Delivery') return 0;
+
+        if (loyaltyTier === 'Gold' || loyaltyTier === 'Platinum') {
+            return 0; // Free delivery for Gold and Platinum
+        }
+
+        if (loyaltyTier === 'Silver' && subtotalAfterDiscount > freeDeliveryThreshold) {
+            return 0; // Free delivery for Silver over threshold
+        }
+
+        return 50; // Regular delivery fee
+    }
 
     // Function to update price summary
-    function updatePriceSummary() {
-        const priceSummary = document.getElementById('price-summary');
+    function updatePriceSummary(orderType) {
+        deliveryFee = calculateDeliveryFee(orderType);
+        total = subtotalAfterDiscount + tax + deliveryFee;
+
         let summaryHTML = `
             <div class="checkout-item">
                 <span>Subtotal:</span>
                 <span>${formatCurrency(subtotal)}</span>
+            </div>`;
+
+        if (discount > 0) {
+            summaryHTML += `
+            <div class="checkout-item">
+                <span>Loyalty Discount (${discountPercentage}%):</span>
+                <span>-${formatCurrency(discount)}</span>
             </div>
+            <div class="checkout-item">
+                <span>Subtotal after discount:</span>
+                <span>${formatCurrency(subtotalAfterDiscount)}</span>
+            </div>`;
+        }
+
+        summaryHTML += `
             <div class="checkout-item">
                 <span>Tax (12%):</span>
                 <span>${formatCurrency(tax)}</span>
             </div>`;
 
-        if (deliveryFee > 0) {
+        if (orderType === 'Delivery') {
+            summaryHTML += `
+            <div class="checkout-item">
+                <span>Delivery Fee:</span>
+                <span>${deliveryFee > 0 ? formatCurrency(deliveryFee) : 'Free'}</span>
+            </div>`;
+        } else if (deliveryFee > 0) {
             summaryHTML += `
             <div class="checkout-item">
                 <span>Delivery Fee:</span>
@@ -71,15 +114,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initial price summary update
-    updatePriceSummary();
+    const selectedOrderTypeElement = document.querySelector('input[name="order_type"]:checked');
+    const initialOrderType = selectedOrderTypeElement ? selectedOrderTypeElement.value : '';
+    updatePriceSummary(initialOrderType);
 
     // Add event listeners to order type radio buttons
     const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
     orderTypeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
-            deliveryFee = this.value === 'Delivery' ? 50 : 0;
-            total = subtotal + tax + deliveryFee;
-            updatePriceSummary();
+            updatePriceSummary(this.value);
         });
     });
 
