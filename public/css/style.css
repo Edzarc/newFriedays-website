@@ -212,6 +212,7 @@ header {
 .feature-card h4 {
     color: var(--clr-primary);
     margin-bottom: 1rem;
+    font-size: 1.5rem;
 }
 
 /* Menu */
