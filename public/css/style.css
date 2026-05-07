@@ -417,21 +417,126 @@ header {
 
 /* Checkout */
 .checkout-container {
-    max-width: 800px;
+    max-width: 960px;
     margin: 2rem auto;
 }
 
-.checkout-section {
-    background: var(--clr-surface);
-    padding: 2rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 2rem;
+.checkout-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
-.checkout-section h3 {
+.checkout-card {
+    background: var(--clr-surface);
+    padding: 1.8rem;
+    border-radius: calc(var(--border-radius) * 1.2);
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(230, 174, 87, 0.2);
+}
+
+.summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.choices-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.checkout-card h3,
+.checkout-card h4 {
     margin-bottom: 1rem;
     color: var(--clr-text);
+}
+
+.price-summary-card {
+    background: #fff7e4;
+    padding: 1.2rem;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(249, 116, 21, 0.15);
+}
+
+.radio-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+}
+
+.radio-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid #e9d8a6;
+    border-radius: 999px;
+    background: #fff8ef;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    color: var(--clr-text);
+    font-weight: 500;
+}
+
+.radio-pill:hover {
+    background: #ffefcf;
+    border-color: var(--clr-primary);
+}
+
+.radio-pill input {
+    accent-color: var(--clr-primary);
+}
+
+.checkout-actions {
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    box-shadow: 0 12px 24px rgba(249, 115, 22, 0.22);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #8d5a31;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #6f421f;
+}
+
+.btn-lg {
+    padding: 14px 32px;
+    font-size: 1rem;
+}
+
+.checkout-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3e2c4;
+}
+
+.checkout-total {
+    font-weight: 700;
+    font-size: 1.18rem;
+    color: var(--clr-primary);
+}
+
+@media (max-width: 860px) {
+    .checkout-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .checkout-item {

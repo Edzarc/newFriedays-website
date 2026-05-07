@@ -49,7 +49,9 @@
                     <div class="cart-total">
                         <strong>Total: <span id="cart-total">0.00</span></strong>
                     </div>
-                    <a href="index.php?page=checkout" class="btn btn-primary" id="checkout-btn" style="display: none;">Checkout</a>
+                    <div style="text-align: center;">
+                        <a href="index.php?page=checkout" class="btn btn-primary" id="checkout-btn" style="display: none;">Checkout</a>
+                    </div>
                 </div>
             </div>
         </div>
