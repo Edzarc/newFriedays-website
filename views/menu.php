@@ -43,7 +43,7 @@
                     <?php foreach ($products as $product): ?>
                         <div class="product-card" data-category="<?php echo htmlspecialchars($product['category']); ?>" data-name="<?php echo htmlspecialchars(strtolower($product['name'])); ?>">
                             <div class="product-image">
-                                <img src="public\images\Untitled.jpg" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                <img src="public/images/Untitled.jpg" alt="<?php echo htmlspecialchars($product['name']); ?>">
                             </div>
                             <div class="product-info">
                                 <h3><?php echo htmlspecialchars($product['name']); ?></h3>
