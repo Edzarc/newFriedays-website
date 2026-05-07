@@ -21,9 +21,9 @@
                 <div class="products-grid" id="products-grid">
                     <?php foreach ($products as $product): ?>
                         <div class="product-card" data-category="<?php echo htmlspecialchars($product['category']); ?>" data-name="<?php echo htmlspecialchars(strtolower($product['name'])); ?>">
-                            <div class="product-image">
-                                <img src="public/images/Untitled.jpg" alt="<?php echo htmlspecialchars($product['name']); ?>">
-                            </div>
+                        <div class="product-image">
+                            <img src="public\images\Gemini_Generated_Image_uq0o0duq0o0duq0o.png" alt="<?php echo htmlspecialchars($product['name']); ?>" style="width: 100%; height: auto; object-fit: cover;">
+                        </div>
                             <div class="product-info">
                                 <h3><?php echo htmlspecialchars($product['name']); ?></h3>
                                 <p class="category"><?php echo htmlspecialchars($product['category']); ?></p>
