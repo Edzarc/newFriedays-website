@@ -35,8 +35,8 @@
                 </div>
 
                 <div class="queue-actions">
-                    <a href="index.php?page=menu" class="btn btn-secondary">Order More</a>
-                    <a href="index.php?page=profile" class="btn btn-primary">View Profile</a>
+                    <a href="index.php?page=menu" class="btn btn-primary">Order More</a>
+                    <a href="index.php?page=profile" class="btn btn-secondary">View Profile</a>
                 </div>
             </div>
         </div>
