@@ -72,7 +72,7 @@
                             </div>
                             <div class="filter-group">
                                 <button type="submit" class="btn btn-primary">Filter</button>
-                                <a href="../index.php?page=admin_orders" class="btn btn-secondary">Clear</a>
+                                <a href="index.php?page=admin_orders" class="btn btn-secondary btn-clear">Clear</a>
                             </div>
                         </div>
                     </form>
