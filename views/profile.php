@@ -23,6 +23,7 @@
                         <?php endif; ?>
 
                         <form method="post" class="profile-form">
+                            <input type="hidden" name="action" value="save_profile">
                             <div class="form-group">
                                 <label for="name">Name</label>
                                 <input type="text" id="name" name="name" required value="<?php echo htmlspecialchars($user['name']); ?>">
@@ -40,6 +41,43 @@
                                 <textarea id="address" name="address" required><?php echo htmlspecialchars($user['address']); ?></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3>Saved Delivery Addresses</h3>
+                        <?php if (empty($addresses)): ?>
+                            <p>No saved delivery addresses yet. Add one below to use Delivery checkout.</p>
+                        <?php else: ?>
+                            <div class="address-list">
+                                <?php foreach ($addresses as $addressItem): ?>
+                                    <div class="address-card">
+                                        <div>
+                                            <strong><?php echo htmlspecialchars($addressItem['label']); ?></strong>
+                                            <p><?php echo nl2br(htmlspecialchars($addressItem['address'])); ?></p>
+                                        </div>
+                                        <form method="post" style="margin-top: 0.75rem;">
+                                            <input type="hidden" name="action" value="delete_address">
+                                            <input type="hidden" name="address_id" value="<?php echo $addressItem['id']; ?>">
+                                            <button type="submit" class="btn btn-secondary btn-small" style="background: #f8d7da; color: #842029; border-color: #f5c2c7;">Delete</button>
+                                        </form>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <h4 style="margin-top: 1.5rem;">Add New Address</h4>
+                        <form method="post" class="profile-form">
+                            <input type="hidden" name="action" value="add_address">
+                            <div class="form-group">
+                                <label for="address_label">Label</label>
+                                <input type="text" id="address_label" name="address_label" required placeholder="Home, Work, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label for="address_text">Delivery Address</label>
+                                <textarea id="address_text" name="address_text" required placeholder="Street, City, Province, ZIP"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Address</button>
                         </form>
                     </div>
 

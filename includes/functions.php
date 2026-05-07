@@ -44,6 +44,32 @@ function getUserByEmail($email) {
     return $stmt->fetch();
 }
 
+function getUserAddresses($userId) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$userId]);
+    return $stmt->fetchAll();
+}
+
+function getUserAddressById($addressId) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE id = ?");
+    $stmt->execute([$addressId]);
+    return $stmt->fetch();
+}
+
+function addUserAddress($userId, $label, $address) {
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO user_addresses (user_id, label, address) VALUES (?, ?, ?)");
+    return $stmt->execute([$userId, $label, $address]);
+}
+
+function deleteUserAddress($addressId) {
+    global $pdo;
+    $stmt = $pdo->prepare("DELETE FROM user_addresses WHERE id = ?");
+    return $stmt->execute([$addressId]);
+}
+
 function updateUserProfile($userId, $name, $email, $phone, $address) {
     global $pdo;
     $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ?, address = ?, updated_at = NOW() WHERE id = ?");
@@ -99,15 +125,15 @@ function getProductById($productId) {
 }
 
 // Order functions
-function createOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartItems) {
+function createOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId = null, $deliveryAddress = null) {
     global $pdo;
 
     // Generate order number
     $orderNumber = 'ORD' . date('Ymd') . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
     // Insert order
-    $stmt = $pdo->prepare("INSERT INTO orders (user_id, order_number, order_type, payment_method, total_amount) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$userId, $orderNumber, $orderType, $paymentMethod, $totalAmount]);
+    $stmt = $pdo->prepare("INSERT INTO orders (user_id, order_number, order_type, payment_method, total_amount, delivery_address_id, delivery_address) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$userId, $orderNumber, $orderType, $paymentMethod, $totalAmount, $deliveryAddressId, $deliveryAddress]);
     $orderId = $pdo->lastInsertId();
 
     // Insert order items

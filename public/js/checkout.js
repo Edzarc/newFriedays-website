@@ -118,11 +118,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialOrderType = selectedOrderTypeElement ? selectedOrderTypeElement.value : '';
     updatePriceSummary(initialOrderType);
 
+    const deliveryAddressSection = document.querySelector('.address-selection');
+    const deliveryAddressSelect = document.getElementById('delivery_address_id');
+
+    function updateDeliveryAddressField(orderType) {
+        if (orderType === 'Delivery') {
+            if (deliveryAddressSection) {
+                deliveryAddressSection.style.display = 'block';
+            }
+            if (deliveryAddressSelect) {
+                deliveryAddressSelect.required = true;
+            }
+        } else {
+            if (deliveryAddressSection) {
+                deliveryAddressSection.style.display = 'none';
+            }
+            if (deliveryAddressSelect) {
+                deliveryAddressSelect.required = false;
+            }
+        }
+    }
+
+    updateDeliveryAddressField(initialOrderType);
+
     // Add event listeners to order type radio buttons
     const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
     orderTypeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             updatePriceSummary(this.value);
+            updateDeliveryAddressField(this.value);
         });
     });
 

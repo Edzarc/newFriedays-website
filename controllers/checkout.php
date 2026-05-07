@@ -23,11 +23,30 @@ function showCheckout() {
         $cartItems = json_decode($_POST['cart_items'], true);
         $orderType = sanitizeInput($_POST['order_type']);
         $paymentMethod = sanitizeInput($_POST['payment_method']);
+        $deliveryAddressId = isset($_POST['delivery_address_id']) ? intval($_POST['delivery_address_id']) : null;
 
         if (empty($cartItems) || empty($orderType) || empty($paymentMethod)) {
             $error = "All fields are required.";
             include 'views/checkout.php';
             return;
+        }
+
+        $deliveryAddress = null;
+        if ($orderType === 'Delivery') {
+            if (empty($deliveryAddressId)) {
+                $error = "Please select a saved delivery address.";
+                include 'views/checkout.php';
+                return;
+            }
+
+            $addressRow = getUserAddressById($deliveryAddressId);
+            if (!$addressRow || $addressRow['user_id'] !== $_SESSION['user_id']) {
+                $error = "Selected delivery address is invalid.";
+                include 'views/checkout.php';
+                return;
+            }
+
+            $deliveryAddress = $addressRow['address'];
         }
 
         // Calculate total
@@ -61,7 +80,7 @@ function showCheckout() {
         $totalAmount = $subtotalAfterDiscount + $tax + $deliveryFee;
 
         // Create order
-        $orderId = createOrder($_SESSION['user_id'], $orderType, $paymentMethod, $totalAmount, $cartItems);
+        $orderId = createOrder($_SESSION['user_id'], $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId, $deliveryAddress);
 
         if ($orderId) {
             // Update user spending with original subtotal for loyalty tracking
@@ -79,6 +98,7 @@ function showCheckout() {
         }
     }
 
+    $addresses = getUserAddresses($_SESSION['user_id']);
     include 'views/checkout.php';
 }
 ?>

@@ -91,6 +91,7 @@
                                 <th>Date</th>
                                 <th>Type</th>
                                 <th>Payment</th>
+                                <th>Delivery Address</th>
                                 <th>Status</th>
                                 <th>Total</th>
                                 <th>Actions</th>
@@ -104,6 +105,7 @@
                                     <td><?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></td>
                                     <td><?php echo htmlspecialchars($order['order_type']); ?></td>
                                     <td><?php echo htmlspecialchars($order['payment_method']); ?></td>
+                                    <td><?php echo $order['order_type'] === 'Delivery' ? nl2br(htmlspecialchars($order['delivery_address'])) : '-'; ?></td>
                                     <td><span class="status status-<?php echo strtolower($order['status']); ?>"><?php echo htmlspecialchars($order['status']); ?></span></td>
                                     <td>₱<?php echo number_format($order['total_amount'], 2); ?></td>
                                     <td>
@@ -130,6 +132,6 @@
         </div>
     </footer>
 
-    <script src="../public/js/admin-orders.js"></script>
+    <script src="public/js/admin-orders.js"></script>
 </body>
 </html>

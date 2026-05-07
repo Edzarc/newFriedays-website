@@ -62,6 +62,23 @@
                                         <label class="radio-pill"><input type="radio" name="payment_method" value="GCash" required> GCash</label>
                                     </div>
                                 </div>
+
+                                <div class="choice-block address-selection" style="display: none; margin-top: 1.5rem;">
+                                    <h4>Delivery Address</h4>
+                                    <?php if (!empty($addresses)): ?>
+                                        <div class="form-group">
+                                            <label for="delivery_address_id">Choose saved address</label>
+                                            <select id="delivery_address_id" name="delivery_address_id">
+                                                <option value="">Select address</option>
+                                                <?php foreach ($addresses as $addressItem): ?>
+                                                    <option value="<?php echo $addressItem['id']; ?>"><?php echo htmlspecialchars($addressItem['label']); ?> - <?php echo htmlspecialchars($addressItem['address']); ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    <?php else: ?>
+                                        <p>Please save a delivery address in your profile before choosing Delivery.</p>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     </div>

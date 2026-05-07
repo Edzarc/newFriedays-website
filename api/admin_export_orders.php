@@ -18,7 +18,7 @@ if ($format === 'csv') {
     $output = fopen('php://output', 'w');
 
     // CSV headers
-    fputcsv($output, ['Order #', 'Customer', 'Date', 'Type', 'Payment', 'Status', 'Total']);
+    fputcsv($output, ['Order #', 'Customer', 'Date', 'Type', 'Payment', 'Delivery Address', 'Status', 'Total']);
 
     // CSV data
     foreach ($orders as $order) {
@@ -28,6 +28,7 @@ if ($format === 'csv') {
             $order['created_at'],
             $order['order_type'],
             $order['payment_method'],
+            $order['order_type'] === 'Delivery' ? $order['delivery_address'] : '',
             $order['status'],
             $order['total_amount']
         ]);
