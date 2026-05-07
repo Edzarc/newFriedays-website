@@ -7,6 +7,43 @@
 
                 <div class="dashboard-grid">
                     <div class="dashboard-card">
+                        <h3>Profile Information</h3>
+                        <?php if (!empty($errors)): ?>
+                            <div class="error-messages">
+                                <?php foreach ($errors as $error): ?>
+                                    <p><?php echo htmlspecialchars($error); ?></p>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($success)): ?>
+                            <div class="success-message" style="background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <?php echo htmlspecialchars($success); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <form method="post" class="profile-form">
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" id="name" name="name" required value="<?php echo htmlspecialchars($user['name']); ?>">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required value="<?php echo htmlspecialchars($user['email']); ?>">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input type="tel" id="phone" name="phone" required value="<?php echo htmlspecialchars($user['phone']); ?>">
+                            </div>
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <textarea id="address" name="address" required><?php echo htmlspecialchars($user['address']); ?></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+
+                    <div class="dashboard-card">
                         <h3>Loyalty Status</h3>
                         <div class="loyalty-info">
                             <div class="tier-badge tier-<?php echo strtolower($user['loyalty_tier']); ?>">

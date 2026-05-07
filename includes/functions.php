@@ -44,6 +44,12 @@ function getUserByEmail($email) {
     return $stmt->fetch();
 }
 
+function updateUserProfile($userId, $name, $email, $phone, $address) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ?, address = ?, updated_at = NOW() WHERE id = ?");
+    return $stmt->execute([$name, $email, $phone, $address, $userId]);
+}
+
 function updateUserSpending($userId, $amount) {
     global $pdo;
     $stmt = $pdo->prepare("UPDATE users SET total_spending = total_spending + ?, updated_at = NOW() WHERE id = ?");
