@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadUserOrders(userId, userName) {
         document.getElementById('modal-user-name').textContent = userName;
 
-        fetch(`../api/admin_user_orders.php?user_id=${userId}`)
+        fetch(`api/admin_user_orders.php?user_id=${userId}`)
             .then(response => response.json())
             .then(data => {
                 const content = document.getElementById('user-orders-content');

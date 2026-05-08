@@ -91,7 +91,7 @@
             </div>
         </div>
     </main>
-
+    
     <footer>
         <div class="container">
             <p>&copy; 2024 Friedays Bocaue. All rights reserved.</p>
