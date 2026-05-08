@@ -15,6 +15,10 @@ function isAdmin() {
     return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 }
 
+function isStaff() {
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'staff';
+}
+
 function requireLogin() {
     if (!isLoggedIn()) {
         header('Location: index.php?page=login');
@@ -25,6 +29,13 @@ function requireLogin() {
 function requireAdmin() {
     if (!isAdmin()) {
         header('Location: index.php?page=admin_login');
+        exit();
+    }
+}
+
+function requireStaff() {
+    if (!isStaff()) {
+        header('Location: index.php?page=login');
         exit();
     }
 }
@@ -48,25 +59,7 @@ function getUserAddresses($userId) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC");
     $stmt->execute([$userId]);
-    $addresses = $stmt->fetchAll();
-
-    if (empty($addresses)) {
-        // If the user still has the legacy account address field populated,
-        // migrate it into the new user_addresses table automatically.
-        $stmt = $pdo->prepare("SELECT address FROM users WHERE id = ?");
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch();
-
-        if ($user && !empty(trim($user['address']))) {
-            addUserAddress($userId, 'Home', $user['address']);
-
-            $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC");
-            $stmt->execute([$userId]);
-            $addresses = $stmt->fetchAll();
-        }
-    }
-
-    return $addresses;
+    return $stmt->fetchAll();
 }
 
 function getUserAddressById($addressId) {
@@ -108,7 +101,15 @@ function deleteUser($userId) {
 function updateUserProfile($userId, $name, $email, $phone, $address) {
     global $pdo;
     $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ?, address = ?, updated_at = NOW() WHERE id = ?");
-    return $stmt->execute([$name, $email, $phone, $address, $userId]);
+    $success = $stmt->execute([$name, $email, $phone, $address, $userId]);
+    
+    if ($success) {
+        // Also update the "Home" address in user_addresses if it exists
+        $stmt = $pdo->prepare("UPDATE user_addresses SET address = ?, updated_at = NOW() WHERE user_id = ? AND label = 'Home'");
+        $stmt->execute([$address, $userId]);
+    }
+    
+    return $success;
 }
 
 function updateUserSpending($userId, $amount) {
@@ -165,6 +166,9 @@ function createOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartIte
 
     // Generate order number
     $orderNumber = 'ORD' . date('Ymd') . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+
+    // Convert 0 or falsy delivery addr ess ID to NULL to satisfy foreign key constraint
+    $deliveryAddressId = !empty($deliveryAddressId) ? $deliveryAddressId : null;
 
     // Insert order
     $stmt = $pdo->prepare("INSERT INTO orders (user_id, order_number, order_type, payment_method, total_amount, delivery_address_id, delivery_address) VALUES (?, ?, ?, ?, ?, ?, ?)");
