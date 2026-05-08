@@ -71,12 +71,12 @@
 
                 <div class="form-group">
                     <label for="product-name">Product Name *</label>
-                    <input type="text" id="product-name" name="name" required>
+                    <input type="text" id="product-name" name="name" required autocomplete="name">
                 </div>
 
                 <div class="form-group">
                     <label for="product-category">Category *</label>
-                    <select id="product-category" name="category" required>
+                    <select id="product-category" name="category" required autocomplete="category">
                         <option value="">Select Category</option>
                         <option value="Chicken & Fried Items">Chicken & Fried Items</option>
                         <option value="Sides & Sandwiches">Sides & Sandwiches</option>
@@ -87,17 +87,17 @@
 
                 <div class="form-group">
                     <label for="product-price">Price *</label>
-                    <input type="number" id="product-price" name="price" step="0.01" min="0" required>
+                    <input type="number" id="product-price" name="price" step="0.01" min="0" required autocomplete="price">
                 </div>
 
                 <div class="form-group">
                     <label for="product-image-url">Image URL</label>
-                    <input type="url" id="product-image-url" name="image_url" placeholder="https://example.com/product-image.jpg">
+                    <input type="url" id="product-image-url" name="image_url" placeholder="https://example.com/product-image.jpg" autocomplete="url">
                 </div>
 
                 <div class="form-group">
                     <label for="product-description">Description</label>
-                    <textarea id="product-description" name="description" rows="3"></textarea>
+                    <textarea id="product-description" name="description" rows="3" autocomplete="description"></textarea>
                 </div>
 
                 <div class="form-actions">
