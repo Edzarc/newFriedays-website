@@ -140,16 +140,27 @@ function updateLoyaltyTier($userId) {
 }
 
 // Product functions
-function getAllProducts() {
+function getAllProducts($availableOnly = false) {
     global $pdo;
-    $stmt = $pdo->query("SELECT * FROM products ORDER BY category, name");
+    $query = "SELECT * FROM products";
+    if ($availableOnly) {
+        $query .= " WHERE is_available = 1";
+    }
+    $query .= " ORDER BY category, name";
+    $stmt = $pdo->query($query);
     return $stmt->fetchAll();
 }
 
-function getProductsByCategory($category) {
+function getProductsByCategory($category, $availableOnly = false) {
     global $pdo;
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE category = ? ORDER BY name");
-    $stmt->execute([$category]);
+    $query = "SELECT * FROM products WHERE category = ?";
+    $params = [$category];
+    if ($availableOnly) {
+        $query .= " AND is_available = 1";
+    }
+    $query .= " ORDER BY name";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
     return $stmt->fetchAll();
 }
 
@@ -158,6 +169,35 @@ function getProductById($productId) {
     $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
     $stmt->execute([$productId]);
     return $stmt->fetch();
+}
+
+// Product management functions for admin
+function addProduct($name, $category, $price, $description) {
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO products (name, category, price, description) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$name, $category, $price, $description]);
+    return $pdo->lastInsertId();
+}
+
+function updateProduct($productId, $name, $category, $price, $description) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE products SET name = ?, category = ?, price = ?, description = ? WHERE id = ?");
+    $stmt->execute([$name, $category, $price, $description, $productId]);
+    return $stmt->rowCount() > 0;
+}
+
+function deleteProduct($productId) {
+    global $pdo;
+    $stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
+    $stmt->execute([$productId]);
+    return $stmt->rowCount() > 0;
+}
+
+function toggleProductAvailability($productId, $available) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE products SET is_available = ? WHERE id = ?");
+    $stmt->execute([$available ? 1 : 0, $productId]);
+    return $stmt->rowCount() > 0;
 }
 
 // Order functions

@@ -15,7 +15,7 @@
 
         <section class="features">
             <div class="container">
-                <h3>Why Choose Friedays?</h3>
+                <h3 style="font-size: 2rem;">Why Choose Friedays?</h3>
                 <div class="features-grid">
                     <div class="feature-card">
                         <h4>Fast & Fresh</h4>

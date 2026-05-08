@@ -17,40 +17,38 @@
                             <button class="btn btn-primary" id="refresh-queue-btn">Refresh Queue</button>
                         </div>
                     </div>
-                </div>
+                    <div style="margin-top:10px";>
+                        <h4>Pending Orders</h4>
+                        <div class="table-actions">
+                            <button class="btn btn-success" id="process-selected-btn">Process Selected Orders</button>
+                            <button class="btn btn-danger btn-small" id="cancel-selected-btn">Cancel Selected</button>
+                            <button class="btn btn-secondary" id="select-all-btn">Toggle Select All</button>
+                        </div>
 
-                <div class="dashboard-card">
-                    <div class="table-actions">
-                        <button class="btn btn-success" id="process-selected-btn">Process Selected Orders</button>
-                        <button class="btn btn-danger btn-small" id="cancel-selected-btn">Cancel Selected</button>
-                        <button class="btn btn-secondary" id="select-all-btn">Toggle Select All</button>
+                        <div class="table-container">
+                            <table class="orders-table" id="staff-queue-table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Order Type</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staff-queue-body">
+                                    <tr>
+                                        <td colspan="6">Loading pending orders...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-
-                    <div class="table-container">
-                        <table class="orders-table" id="staff-queue-table">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Order #</th>
-                                    <th>Customer</th>
-                                    <th>Order Type</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="staff-queue-body">
-                                <tr>
-                                    <td colspan="6">Loading pending orders...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="dashboard-card">
                     
-                    <div class="status-tables-grid">
-                        <div class="status-table">
+                
+                    <div style="margin-top:10px";>
+                    	<div class="status-table">
                             <h4>Preparing Orders</h4>
                             <div class="table-actions">
                                 <button class="btn btn-success btn-small bulk-process-preparing">Process Selected to Ready</button>
@@ -77,7 +75,8 @@
                                 </table>
                             </div>
                         </div>
-
+                    </div>
+                    <div class="status-tables-grid">
                         <div class="status-table">
                             <h4>Ready Orders</h4>
                             <div class="table-actions">

@@ -1,4 +1,25 @@
-<?php $pageTitle = 'Menu - Friedays Bocaue'; include 'includes/header.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - Friedays Bocaue</title>
+    <link rel="stylesheet" href="public/css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <h1 class="logo">Friedays Bocaue</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.php">Home</a></li>
+                    <li><a href="index.php?page=menu" class="active">Menu</a></li>
+                    <li><a href="index.php?page=dashboard">Dashboard</a></li>
+                    <li><a href="index.php?page=logout">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
 
     <main>
         <div class="menu-container">
@@ -21,9 +42,9 @@
                 <div class="products-grid" id="products-grid">
                     <?php foreach ($products as $product): ?>
                         <div class="product-card" data-category="<?php echo htmlspecialchars($product['category']); ?>" data-name="<?php echo htmlspecialchars(strtolower($product['name'])); ?>">
-                        <div class="product-image">
-                            <img src="public\images\Gemini_Generated_Image_uq0o0duq0o0duq0o.png" alt="<?php echo htmlspecialchars($product['name']); ?>" style="width: 100%; height: auto; object-fit: cover;">
-                        </div>
+                            <div class="product-image">
+                                <img src="public\images\Untitled.jpg" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                            </div>
                             <div class="product-info">
                                 <h3><?php echo htmlspecialchars($product['name']); ?></h3>
                                 <p class="category"><?php echo htmlspecialchars($product['category']); ?></p>
@@ -49,13 +70,19 @@
                     <div class="cart-total">
                         <strong>Total: <span id="cart-total">0.00</span></strong>
                     </div>
-                    <div style="text-align: center;">
-                        <a href="index.php?page=checkout" class="btn btn-primary" id="checkout-btn" style="display: none;">Checkout</a>
-                    </div>
+                    <a href="index.php?page=checkout" class="btn btn-primary" id="checkout-btn" style="display: none;">Checkout</a>
                 </div>
             </div>
         </div>
     </main>
 
-<?php include 'includes/footer.php'; ?>
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Friedays Bocaue. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="public/js/main.js"></script>
     <script src="public/js/menu.js"></script>
+</body>
+</html>

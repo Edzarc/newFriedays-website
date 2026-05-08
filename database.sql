@@ -37,6 +37,7 @@ CREATE TABLE products (
     category ENUM('Chicken & Fried Items', 'Sides & Sandwiches', 'Beverages', 'Pasta & Mains') NOT NULL,
     price DECIMAL(8,2) NOT NULL,
     description TEXT,
+    is_available BOOLEAN DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -19,6 +19,7 @@
                         <li><a href="index.php?page=admin" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin') ? 'class="active"' : ''; ?>>Dashboard</a></li>
                         <li><a href="index.php?page=admin_orders" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin_orders') ? 'class="active"' : ''; ?>>Orders</a></li>
                         <li><a href="index.php?page=admin_users" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin_users') ? 'class="active"' : ''; ?>>Users</a></li>
+                        <li><a href="index.php?page=admin_products" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin_products') ? 'class="active"' : ''; ?>>Products</a></li>
                         <li><a href="index.php?page=admin_analytics" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin_analytics') ? 'class="active"' : ''; ?>>Analytics</a></li>
                         <li><a href="index.php?page=logout">Logout</a></li>
                     <?php else: ?>

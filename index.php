@@ -52,6 +52,10 @@ switch ($page) {
         require_once 'admin/controllers/analytics.php';
         showAnalytics();
         break;
+    case 'admin_products':
+        require_once 'admin/controllers/products.php';
+        showProducts();
+        break;
     default:
         showHome();
         break;

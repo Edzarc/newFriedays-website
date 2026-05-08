@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const dateTo = document.getElementById('date_to').value;
 
         // Load revenue chart
-        fetch(`../api/admin_revenue_chart.php?date_from=${dateFrom}&date_to=${dateTo}`)
+        fetch(`api/admin_revenue_chart.php?date_from=${dateFrom}&date_to=${dateTo}`)
             .then(response => response.json())
             .then(data => {
                 createRevenueChart(data);
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading revenue chart:', error));
 
         // Load order type chart
-        fetch(`../api/admin_order_type_chart.php?date_from=${dateFrom}&date_to=${dateTo}`)
+        fetch(`api/admin_order_type_chart.php?date_from=${dateFrom}&date_to=${dateTo}`)
             .then(response => response.json())
             .then(data => {
                 createOrderTypeChart(data);
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function exportAnalytics(format) {
         const dateFrom = document.getElementById('date_from').value;
         const dateTo = document.getElementById('date_to').value;
-        const url = `../api/admin_export_analytics.php?format=${format}&date_from=${dateFrom}&date_to=${dateTo}`;
+        const url = `api/admin_export_analytics.php?format=${format}&date_from=${dateFrom}&date_to=${dateTo}`;
         window.open(url, '_blank');
     }
 

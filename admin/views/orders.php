@@ -18,6 +18,7 @@
                     <li><a href="index.php?page=admin">Dashboard</a></li>
                     <li><a href="index.php?page=admin_orders" class="active">Orders</a></li>
                     <li><a href="index.php?page=admin_users">Users</a></li>
+                    <li><a href="index.php?page=admin_products">Products</a></li>
                     <li><a href="index.php?page=admin_analytics">Analytics</a></li>
                     <li><a href="index.php?page=logout">Logout</a></li>
                 </ul>

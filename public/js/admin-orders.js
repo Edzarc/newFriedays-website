@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateOrderStatus(orderId, status) {
-        fetch('../api/admin_update_order.php', {
+        fetch('api/admin_update_order.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function exportOrders(format) {
-        const url = `../api/admin_export_orders.php?format=${format}`;
+        const url = `api/admin_export_orders.php?format=${format}`;
         const filters = new URLSearchParams(window.location.search);
         window.open(url + '&' + filters.toString(), '_blank');
     }
