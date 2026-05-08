@@ -172,17 +172,17 @@ function getProductById($productId) {
 }
 
 // Product management functions for admin
-function addProduct($name, $category, $price, $description) {
+function addProduct($name, $category, $price, $description, $imageUrl = null) {
     global $pdo;
-    $stmt = $pdo->prepare("INSERT INTO products (name, category, price, description) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$name, $category, $price, $description]);
+    $stmt = $pdo->prepare("INSERT INTO products (name, category, price, description, image_url) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$name, $category, $price, $description, $imageUrl]);
     return $pdo->lastInsertId();
 }
 
-function updateProduct($productId, $name, $category, $price, $description) {
+function updateProduct($productId, $name, $category, $price, $description, $imageUrl = null) {
     global $pdo;
-    $stmt = $pdo->prepare("UPDATE products SET name = ?, category = ?, price = ?, description = ? WHERE id = ?");
-    $stmt->execute([$name, $category, $price, $description, $productId]);
+    $stmt = $pdo->prepare("UPDATE products SET name = ?, category = ?, price = ?, description = ?, image_url = ? WHERE id = ?");
+    $stmt->execute([$name, $category, $price, $description, $imageUrl, $productId]);
     return $stmt->rowCount() > 0;
 }
 

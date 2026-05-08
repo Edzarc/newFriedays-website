@@ -19,13 +19,14 @@ try {
             $category = $data['category'] ?? '';
             $price = floatval($data['price'] ?? 0);
             $description = trim($data['description'] ?? '');
+            $imageUrl = trim($data['image_url'] ?? '');
 
             if (empty($name) || empty($category) || $price <= 0) {
                 echo json_encode(['success' => false, 'message' => 'Invalid product data']);
                 exit();
             }
 
-            $productId = addProduct($name, $category, $price, $description);
+            $productId = addProduct($name, $category, $price, $description, $imageUrl ?: null);
             echo json_encode(['success' => true, 'message' => 'Product added successfully', 'product_id' => $productId]);
             break;
 
@@ -52,13 +53,14 @@ try {
                 $category = $data['category'] ?? '';
                 $price = floatval($data['price'] ?? 0);
                 $description = trim($data['description'] ?? '');
+                $imageUrl = trim($data['image_url'] ?? '');
 
                 if (!$productId || empty($name) || empty($category) || $price <= 0) {
                     echo json_encode(['success' => false, 'message' => 'Invalid product data']);
                     exit();
                 }
 
-                $success = updateProduct($productId, $name, $category, $price, $description);
+                $success = updateProduct($productId, $name, $category, $price, $description, $imageUrl ?: null);
                 if ($success) {
                     echo json_encode(['success' => true, 'message' => 'Product updated successfully']);
                 } else {

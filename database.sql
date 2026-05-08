@@ -37,6 +37,7 @@ CREATE TABLE products (
     category ENUM('Chicken & Fried Items', 'Sides & Sandwiches', 'Beverages', 'Pasta & Mains') NOT NULL,
     price DECIMAL(8,2) NOT NULL,
     description TEXT,
+    image_url VARCHAR(1024) DEFAULT NULL,
     is_available BOOLEAN DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -109,15 +110,15 @@ INSERT INTO loyalty_tiers (tier_name, discount_percentage, benefits, min_spendin
 ('Platinum', 15.00, '15% discount on all orders, Free delivery, Priority queue, Exclusive menu items', 10000.00);
 
 -- Insert sample products
-INSERT INTO products (name, category, price, description) VALUES
-('Fried Chicken Bucket', 'Chicken & Fried Items', 250.00, 'Crispy fried chicken bucket with 8 pieces'),
-('Chicken Nuggets', 'Chicken & Fried Items', 120.00, '12 pieces of golden chicken nuggets'),
-('French Fries', 'Sides & Sandwiches', 80.00, 'Crispy golden french fries'),
-('Chicken Sandwich', 'Sides & Sandwiches', 150.00, 'Grilled chicken sandwich with lettuce and mayo'),
-('Coca Cola', 'Beverages', 45.00, 'Refreshing cola drink'),
-('Iced Tea', 'Beverages', 40.00, 'Fresh brewed iced tea'),
-('Spaghetti Carbonara', 'Pasta & Mains', 180.00, 'Creamy spaghetti with bacon and cheese'),
-('Chicken Alfredo', 'Pasta & Mains', 200.00, 'Fettuccine alfredo with grilled chicken');
+INSERT INTO products (name, category, price, description, image_url) VALUES
+('Fried Chicken Bucket', 'Chicken & Fried Items', 250.00, 'Crispy fried chicken bucket with 8 pieces', NULL),
+('Chicken Nuggets', 'Chicken & Fried Items', 120.00, '12 pieces of golden chicken nuggets', NULL),
+('French Fries', 'Sides & Sandwiches', 80.00, 'Crispy golden french fries', NULL),
+('Chicken Sandwich', 'Sides & Sandwiches', 150.00, 'Grilled chicken sandwich with lettuce and mayo', NULL),
+('Coca Cola', 'Beverages', 45.00, 'Refreshing cola drink', NULL),
+('Iced Tea', 'Beverages', 40.00, 'Fresh brewed iced tea', NULL),
+('Spaghetti Carbonara', 'Pasta & Mains', 180.00, 'Creamy spaghetti with bacon and cheese', NULL),
+('Chicken Alfredo', 'Pasta & Mains', 200.00, 'Fettuccine alfredo with grilled chicken', NULL);
 
 -- Create admin user (password: admin123)
 INSERT INTO users (name, email, password_hash, phone, address, role, loyalty_tier) VALUES

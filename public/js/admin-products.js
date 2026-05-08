@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('#products-tbody tr').forEach(row => {
                 const name = row.cells[1].textContent.toLowerCase();
                 const category = row.cells[2].textContent.toLowerCase();
-                const description = row.cells[4].textContent.toLowerCase();
+                const description = row.cells[5].textContent.toLowerCase();
                 const match = name.includes(searchTerm) || category.includes(searchTerm) || description.includes(searchTerm);
                 row.style.display = match ? '' : 'none';
             });
@@ -89,11 +89,13 @@ function openModal(product = null) {
         document.getElementById('product-name').value = product.name;
         document.getElementById('product-category').value = product.category;
         document.getElementById('product-price').value = product.price;
+        document.getElementById('product-image-url').value = product.image_url || '';
         document.getElementById('product-description').value = product.description || '';
     } else {
         title.textContent = 'Add New Product';
         form.reset();
         document.getElementById('product-id').value = '';
+        document.getElementById('product-image-url').value = '';
     }
 
     modal.style.display = 'block';
@@ -114,7 +116,8 @@ function editProduct(productId) {
         name: cells[1].textContent.trim(),
         category: cells[2].textContent.trim(),
         price: parseFloat(cells[3].textContent.replace('₱', '').replace(',', '')),
-        description: cells[4].textContent.trim()
+        image_url: row.dataset.imageUrl || '',
+        description: cells[5].textContent.trim()
     };
 
     openModal(product);
@@ -127,6 +130,7 @@ async function saveProduct() {
         name: formData.get('name'),
         category: formData.get('category'),
         price: parseFloat(formData.get('price')),
+        image_url: formData.get('image_url'),
         description: formData.get('description')
     };
 

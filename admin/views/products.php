@@ -20,6 +20,7 @@
                                 <th>Name</th>
                                 <th>Category</th>
                                 <th>Price</th>
+                                <th>Image</th>
                                 <th>Description</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -27,11 +28,15 @@
                         </thead>
                         <tbody id="products-tbody">
                             <?php foreach ($products as $product): ?>
-                            <tr data-product-id="<?php echo $product['id']; ?>">
+                            <tr data-product-id="<?php echo $product['id']; ?>" data-image-url="<?php echo htmlspecialchars($product['image_url'] ?? ''); ?>">
                                 <td><?php echo $product['id']; ?></td>
                                 <td><?php echo htmlspecialchars($product['name']); ?></td>
                                 <td><?php echo htmlspecialchars($product['category']); ?></td>
                                 <td>₱<?php echo number_format($product['price'], 2); ?></td>
+                                <td>
+                                    <?php $productImage = !empty($product['image_url']) ? $product['image_url'] : 'public/images/2placeholder.jpg'; ?>
+                                    <img src="<?php echo htmlspecialchars($productImage); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" style="max-width: 80px; max-height: 50px; object-fit: cover;">
+                                </td>
                                 <td><?php echo htmlspecialchars($product['description'] ?? ''); ?></td>
                                 <td>
                                     <span class="status-badge <?php echo ($product['is_available'] ?? 1) ? 'available' : 'unavailable'; ?>">
@@ -83,6 +88,11 @@
                 <div class="form-group">
                     <label for="product-price">Price *</label>
                     <input type="number" id="product-price" name="price" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="product-image-url">Image URL</label>
+                    <input type="url" id="product-image-url" name="image_url" placeholder="https://example.com/product-image.jpg">
                 </div>
 
                 <div class="form-group">
