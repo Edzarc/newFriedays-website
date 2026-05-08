@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($pageTitle) ? $pageTitle : 'Friedays Bocaue - Restaurant Ordering System'; ?></title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="public/css/style.css">
 </head>
 <body>

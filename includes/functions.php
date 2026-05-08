@@ -267,14 +267,15 @@ function addToQueue($orderId) {
 function getCurrentServing() {
     global $pdo;
     $stmt = $pdo->query("
-        SELECT o.*, u.name as user_name
+        SELECT q.queue_number, o.order_number, u.name as user_name
         FROM orders o
         JOIN users u ON o.user_id = u.id
+        JOIN queue q ON q.order_id = o.id
         WHERE o.status = 'Preparing'
         ORDER BY o.updated_at DESC LIMIT 1
     ");
     $result = $stmt->fetch();
-    return $result ? $result['order_number'] : null;
+    return $result ?: null;
 }
 
 function getUserQueuePosition($userId) {

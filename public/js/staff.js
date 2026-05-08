@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 currentServingEl.textContent = data.current_serving ?
-                    `Order #${data.current_serving}` : 'No orders being prepared';
+                    `Order #${data.current_serving.order_number}` : 'No orders being prepared';
 
                 // Load queue table with Pending orders
                 queueBody.innerHTML = '';
