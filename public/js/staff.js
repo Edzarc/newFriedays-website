@@ -108,6 +108,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateOrderStatus(orderId, newStatus) {
+        // Add confirmation for cancellation
+        if (newStatus === 'Cancelled') {
+            const confirmed = confirm('Are you sure you want to cancel this order? This action cannot be undone.');
+            if (!confirmed) {
+                return;
+            }
+        }
+
         fetch('api/staff_update_order.php', {
             method: 'POST',
             headers: {
@@ -188,6 +196,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Add confirmation for bulk cancellation
+        const confirmed = confirm(`Are you sure you want to cancel ${selected.length} selected order(s)? This action cannot be undone.`);
+        if (!confirmed) {
+            return;
+        }
+
         // Cancel selected orders
         Promise.all(selected.map(orderId => 
             fetch('api/staff_update_order.php', {
@@ -228,6 +242,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selected.length === 0) {
             showAlert('Select at least one order to process.', 'info');
             return;
+        }
+
+        // Add confirmation for bulk cancellation
+        if (newStatus === 'Cancelled') {
+            const confirmed = confirm(`Are you sure you want to cancel ${selected.length} selected order(s)? This action cannot be undone.`);
+            if (!confirmed) {
+                return;
+            }
         }
 
         Promise.all(selected.map(orderId => 
