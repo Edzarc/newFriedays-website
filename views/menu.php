@@ -22,13 +22,13 @@
                     <?php foreach ($products as $product): ?>
                         <div class="product-card" data-category="<?php echo htmlspecialchars($product['category']); ?>" data-name="<?php echo htmlspecialchars(strtolower($product['name'])); ?>">
                             <div class="product-image">
-                                <img src="public\images\Untitled.jpg" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                <img src="public\images\Gemini_Generated_Image_uq0o0duq0o0duq0o.png" style="width: 100%; height: auto; object-fit: cover;" alt="<?php echo htmlspecialchars($product['name']); ?>">
                             </div>
                             <div class="product-info">
                                 <h3><?php echo htmlspecialchars($product['name']); ?></h3>
                                 <p class="category"><?php echo htmlspecialchars($product['category']); ?></p>
                                 <p class="price">₱<?php echo number_format($product['price'], 2); ?></p>
-                                <button class="btn btn-secondary add-to-cart" data-product-id="<?php echo $product['id']; ?>" data-name="<?php echo htmlspecialchars($product['name']); ?>" data-price="<?php echo $product['price']; ?>">
+                                <button class="btn btn-secondary add-to-cart" style="display: block; margin: 0 auto;" data-product-id="<?php echo $product['id']; ?>" data-name="<?php echo htmlspecialchars($product['name']); ?>" data-price="<?php echo $product['price']; ?>">
                                     Add to Cart
                                 </button>
                             </div>
@@ -49,19 +49,13 @@
                     <div class="cart-total">
                         <strong>Total: <span id="cart-total">0.00</span></strong>
                     </div>
-                    <a href="index.php?page=checkout" class="btn btn-primary" id="checkout-btn" style="display: none;">Checkout</a>
+                    <div style="text-align: center;">
+                        <a href="index.php?page=checkout" class="btn btn-primary" id="checkout-btn" style="display: none;">Checkout</a>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 Friedays Bocaue. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <script src="public/js/main.js"></script>
-    <script src="public/js/menu.js"></script>
-</body>
-</html>
+<?php include 'includes/footer.php'; ?>
+<script src="public/js/menu.js"></script>
