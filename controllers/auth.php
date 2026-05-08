@@ -12,7 +12,7 @@ function register() {
 
         $errors = [];
 
-        // Validation
+        // Validation checks
         if (empty($name) || empty($email) || empty($phone) || empty($address) || empty($password)) {
             $errors[] = "All fields are required.";
         }
@@ -37,8 +37,8 @@ function register() {
             $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
             global $pdo;
-            $stmt = $pdo->prepare("INSERT INTO users (name, email, password_hash, phone, address) VALUES (?, ?, ?, ?, ?)");
-            if ($stmt->execute([$name, $email, $passwordHash, $phone, $address])) {
+            $stmt = $pdo->prepare("INSERT INTO users (name, email, password_hash, phone, address, role) VALUES (?, ?, ?, ?, ?, ?)");
+            if ($stmt->execute([$name, $email, $passwordHash, $phone, $address, 'customer'])) {
                 $userId = $pdo->lastInsertId();
                 addUserAddress($userId, 'Home', $address);
 

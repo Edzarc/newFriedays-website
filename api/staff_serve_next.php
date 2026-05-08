@@ -3,7 +3,7 @@ require_once '../includes/functions.php';
 
 header('Content-Type: application/json');
 
-if (!isAdmin()) {
+if (!isStaff()) {
     echo json_encode(['error' => 'Unauthorized']);
     exit();
 }
@@ -30,4 +30,3 @@ if ($nextOrder) {
 } else {
     echo json_encode(['success' => false, 'message' => 'No orders waiting']);
 }
-?>

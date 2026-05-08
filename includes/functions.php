@@ -226,8 +226,15 @@ function addToQueue($orderId) {
 
 function getCurrentServing() {
     global $pdo;
-    $stmt = $pdo->query("SELECT * FROM queue WHERE status = 'Serving' ORDER BY created_at DESC LIMIT 1");
-    return $stmt->fetch();
+    $stmt = $pdo->query("
+        SELECT o.*, u.name as user_name
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        WHERE o.status = 'Preparing'
+        ORDER BY o.updated_at DESC LIMIT 1
+    ");
+    $result = $stmt->fetch();
+    return $result ? $result['order_number'] : null;
 }
 
 function getUserQueuePosition($userId) {
@@ -241,6 +248,34 @@ function getUserQueuePosition($userId) {
     ");
     $stmt->execute([$userId]);
     return $stmt->fetch();
+}
+
+function updateOrderStatus($orderId, $status) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
+    $stmt->execute([$status, $orderId]);
+}
+
+function getQueueOrders($status = null) {
+    global $pdo;
+    $query = "
+        SELECT q.*, o.order_number, o.order_type, o.status as order_status, u.name as user_name
+        FROM queue q
+        JOIN orders o ON q.order_id = o.id
+        JOIN users u ON o.user_id = u.id
+    ";
+    $params = [];
+    if ($status !== null) {
+        $query .= " WHERE q.status = ?";
+        $params[] = $status;
+    } else {
+        $query .= " WHERE q.status IN ('Waiting', 'Serving')";
+    }
+    $query .= " ORDER BY q.created_at ASC";
+
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
 }
 
 function updateQueueStatus($queueId, $status) {

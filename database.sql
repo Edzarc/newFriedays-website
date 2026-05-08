@@ -12,6 +12,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     address TEXT NOT NULL,
+    role ENUM('customer', 'staff', 'admin') NOT NULL DEFAULT 'customer',
     loyalty_tier ENUM('Bronze', 'Silver', 'Gold', 'Platinum') DEFAULT 'Bronze',
     total_spending DECIMAL(10,2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -105,5 +106,6 @@ INSERT INTO products (name, category, price, description) VALUES
 ('Chicken Alfredo', 'Pasta & Mains', 200.00, 'Fettuccine alfredo with grilled chicken');
 
 -- Create admin user (password: admin123)
-INSERT INTO users (name, email, password_hash, phone, address, loyalty_tier) VALUES
-('Admin', 'admin@friedays.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '09123456789', 'Restaurant Address', 'Platinum');
+INSERT INTO users (name, email, password_hash, phone, address, role, loyalty_tier) VALUES
+('Admin', 'admin@friedays.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '09123456789', 'Restaurant Address', 'admin', 'Platinum'),
+('Staff', 'staff@friedays.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '09123456789', 'Restaurant Address', 'staff', 'Bronze');

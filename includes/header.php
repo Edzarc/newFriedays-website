@@ -28,6 +28,8 @@
                             <li><a href="index.php?page=profile" <?php echo (isset($_GET['page']) && $_GET['page'] == 'profile') ? 'class="active"' : ''; ?>>Profile</a></li>
                             <?php if (isAdmin()): ?>
                                 <li><a href="index.php?page=admin" <?php echo (isset($_GET['page']) && $_GET['page'] == 'admin') ? 'class="active"' : ''; ?>>Admin</a></li>
+                            <?php elseif (isStaff()): ?>
+                                <li><a href="index.php?page=staff" <?php echo (isset($_GET['page']) && $_GET['page'] == 'staff') ? 'class="active"' : ''; ?>>Staff</a></li>
                             <?php endif; ?>
                             <li><a href="index.php?page=logout">Logout</a></li>
                         <?php else: ?>
