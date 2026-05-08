@@ -9,9 +9,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Checkout button
     const checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', function() {
+        checkoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             console.log('Checkout button clicked, cart items:', cart.items);
-            // Store cart items in session/localStorage for checkout
+            // Store cart items in localStorage for checkout
             localStorage.setItem('checkout_cart', JSON.stringify(cart.items));
             console.log('Set checkout_cart to localStorage');
             window.location.href = 'index.php?page=checkout';

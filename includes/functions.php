@@ -48,7 +48,25 @@ function getUserAddresses($userId) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC");
     $stmt->execute([$userId]);
-    return $stmt->fetchAll();
+    $addresses = $stmt->fetchAll();
+
+    if (empty($addresses)) {
+        // If the user still has the legacy account address field populated,
+        // migrate it into the new user_addresses table automatically.
+        $stmt = $pdo->prepare("SELECT address FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch();
+
+        if ($user && !empty(trim($user['address']))) {
+            addUserAddress($userId, 'Home', $user['address']);
+
+            $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC");
+            $stmt->execute([$userId]);
+            $addresses = $stmt->fetchAll();
+        }
+    }
+
+    return $addresses;
 }
 
 function getUserAddressById($addressId) {

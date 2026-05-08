@@ -5,9 +5,12 @@ function formatCurrency(amount) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Load cart items from localStorage
-    const cartItems = JSON.parse(localStorage.getItem('checkout_cart') || '[]');
-    console.log('Loaded cart items:', cartItems);
+    // Load cart items from localStorage. checkout_cart is set when navigating from the menu.
+    // If it is not available, fall back to the main friedays_cart storage.
+    const rawCheckoutCart = localStorage.getItem('checkout_cart');
+    const rawMainCart = localStorage.getItem('friedays_cart');
+    const cartItems = JSON.parse(rawCheckoutCart || rawMainCart || '[]');
+    console.log('Loaded cart items:', cartItems, 'checkout_cart present:', !!rawCheckoutCart, 'friedays_cart present:', !!rawMainCart);
     const cartInput = document.getElementById('cart-items-input');
 
     if (cartItems.length === 0) {
