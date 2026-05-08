@@ -7,15 +7,24 @@ function showAlert(message, type = 'info') {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // User search
+    // User and staff search
     const searchInput = document.getElementById('user-search');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
+
             document.querySelectorAll('#users-tbody tr').forEach(row => {
                 const name = row.cells[1].textContent.toLowerCase();
                 const email = row.cells[2].textContent.toLowerCase();
-                row.style.display = (name.includes(searchTerm) || email.includes(searchTerm)) ? '' : 'none';
+                const phone = row.cells[3].textContent.toLowerCase();
+                const role = row.cells[4].querySelector('select')?.value.toLowerCase() || '';
+                row.style.display = (name.includes(searchTerm) || email.includes(searchTerm) || phone.includes(searchTerm) || role.includes(searchTerm)) ? '' : 'none';
+            });
+
+            document.querySelectorAll('#staff-tbody tr').forEach(row => {
+                const cells = Array.from(row.cells).map(cell => cell.textContent.toLowerCase());
+                const match = cells.some(value => value.includes(searchTerm));
+                row.style.display = match ? '' : 'none';
             });
         });
     }
@@ -27,6 +36,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const newTier = this.value;
 
             updateUserTier(userId, newTier);
+        });
+    });
+
+    // Role change handlers
+    document.querySelectorAll('.role-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const userId = this.dataset.userId;
+            const newRole = this.value;
+
+            updateUserRole(userId, newRole);
         });
     });
 
@@ -85,6 +104,28 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error updating user tier:', error);
             showAlert('An error occurred while updating the user tier.');
+        });
+    }
+
+    function updateUserRole(userId, role) {
+        fetch('api/admin_update_user_role.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: userId, role: role })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('User role updated successfully!');
+            } else {
+                showAlert('Failed to update user role. ' + (data.message || ''));
+            }
+        })
+        .catch(error => {
+            console.error('Error updating user role:', error);
+            showAlert('An error occurred while updating the user role.');
         });
     }
 

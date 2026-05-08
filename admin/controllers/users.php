@@ -5,6 +5,7 @@ function showUsers() {
     requireAdmin();
 
     $users = getAllUsers();
+    $staffMembers = getAllStaff();
 
     include 'admin/views/users.php';
 }

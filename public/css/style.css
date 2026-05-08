@@ -955,6 +955,15 @@ header {
     gap: 1rem;
 }
 
+/*Custom buttons*/
+.view-orders {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    margin-bottom: 10px;
+}
+
+
 /* Filters */
 .filters-section {
     background: var(--clr-surface);
@@ -1292,3 +1301,4 @@ footer {
     padding: 2rem 0;
     margin-top: 4rem;
 }
+

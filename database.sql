@@ -87,6 +87,19 @@ CREATE TABLE queue (
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
+-- Staff table
+CREATE TABLE staff (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    position VARCHAR(255) NOT NULL,
+    department VARCHAR(255),
+    hire_date DATE NOT NULL,
+    employment_status ENUM('Active', 'Inactive', 'On Leave') DEFAULT 'Active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Insert sample loyalty tiers
 INSERT INTO loyalty_tiers (tier_name, discount_percentage, benefits, min_spending_threshold) VALUES
 ('Bronze', 0.00, 'Welcome discount: 5% off first order', 0.00),
