@@ -170,9 +170,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // For GCash payments, don't clear cart yet - it will be cleared after successful payment
+        if (paymentMethod !== 'GCash') {
+            localStorage.removeItem('friedays_cart');
+            localStorage.removeItem('checkout_cart');
+        }
+
         // Submit form
-        localStorage.removeItem('friedays_cart');
-        localStorage.removeItem('checkout_cart');
         checkoutForm.submit();
     });
 });

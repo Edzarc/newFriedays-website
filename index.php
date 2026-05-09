@@ -56,6 +56,14 @@ switch ($page) {
         require_once 'admin/controllers/products.php';
         showProducts();
         break;
+    case 'payment_success':
+        require_once 'controllers/payment.php';
+        handlePaymentSuccess();
+        break;
+    case 'payment_failed':
+        require_once 'controllers/payment.php';
+        handlePaymentFailed();
+        break;
     default:
         showHome();
         break;

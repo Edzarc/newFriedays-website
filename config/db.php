@@ -45,6 +45,11 @@ define('DB_NAME', $dbName);
 define('DB_USER', $dbUser);
 define('DB_PASS', $dbPass);
 
+// PayMongo API Configuration
+define('PAYMONGO_SECRET_KEY', getenv('PAYMONGO_SECRET_KEY') ?: '');
+define('PAYMONGO_PUBLIC_KEY', 'pk_test_7fb19JTL7YkYSWYmcBx6iGmG');
+define('PAYMONGO_BASE_URL', 'https://api.paymongo.com/v1');
+
 try {
     $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

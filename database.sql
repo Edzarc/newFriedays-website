@@ -44,21 +44,27 @@ CREATE TABLE products (
 
 -- Orders table
 CREATE TABLE orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    order_number VARCHAR(20) UNIQUE NOT NULL,
-    order_type ENUM('Pickup', 'Dine In', 'Delivery') NOT NULL,
-    payment_method ENUM('Cash on Delivery', 'GCash') NOT NULL,
-    status ENUM('Pending', 'Preparing', 'Ready', 'Completed', 'Cancelled') DEFAULT 'Pending',
-    total_amount DECIMAL(10,2) NOT NULL,
-    delivery_address_id INT NULL,
-    delivery_address TEXT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (delivery_address_id) REFERENCES user_addresses(id) ON DELETE SET NULL
-);
-
+  id int NOT NULL AUTO_INCREMENT,
+  user_id int NOT NULL,f
+  order_number varchar(20) NOT NULL,
+  order_type enum('Pickup','Dine In','Delivery') NOT NULL,
+  payment_method enum('Cash on Delivery','GCash') NOT NULL,
+  status enum('Pending','Preparing','Ready','Completed','Cancelled') DEFAULT 'Pending',
+  payment_status enum('Pending','Paid','Failed','Cancelled') DEFAULT 'Pending',
+  paymongo_payment_id varchar(255) DEFAULT NULL,
+  paymongo_link_id varchar(255) DEFAULT NULL,
+  total_amount decimal(10,2) NOT NULL,
+  delivery_address_id int DEFAULT NULL,
+  delivery_address text,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY order_number (order_number),
+  KEY user_id (user_id),
+  KEY fk_orders_delivery_address (delivery_address_id),
+  CONSTRAINT fk_orders_delivery_address FOREIGN KEY (delivery_address_id) REFERENCES user_addresses (id) ON DELETE SET NULL,
+  CONSTRAINT orders_ibfk_1 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) 
 -- Order items table
 CREATE TABLE order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,6 +74,23 @@ CREATE TABLE order_items (
     price_at_purchase DECIMAL(8,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+-- Pending orders table (for PayMongo payments)
+CREATE TABLE pending_orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    order_number VARCHAR(20) NOT NULL,
+    order_type ENUM('Pickup','Dine In','Delivery') NOT NULL,
+    payment_method ENUM('Cash on Delivery','GCash') NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    cart_items JSON NOT NULL,
+    delivery_address_id INT DEFAULT NULL,
+    delivery_address TEXT,
+    paymongo_source_id VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (delivery_address_id) REFERENCES user_addresses(id) ON DELETE SET NULL
 );
 
 -- Loyalty tiers table

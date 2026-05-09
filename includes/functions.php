@@ -461,4 +461,146 @@ function calculateDiscount($totalAmount, $loyaltyTier, $userId = null) {
 
     return $totalAmount * ($tier['discount_percentage'] / 100);
 }
+
+// PayMongo GCash Payment Functions
+function createPayMongoGCashSource($amount, $description, $orderId) {
+    // Validate amount (minimum 1 PHP = 100 centavos)
+    if ($amount < 1) {
+        return [
+            'error' => true,
+            'message' => 'Amount must be at least ₱1.00'
+        ];
+    }
+    
+    $url = PAYMONGO_BASE_URL . '/sources';
+    
+    // Construct proper base URL
+    if (php_sapi_name() === 'cli') {
+        // For CLI/testing, use localhost
+        $baseUrl = 'http://localhost/newFriedays-website';
+    } else {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $scriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '/newFriedays-website/index.php');
+        $baseUrl = $protocol . "://" . $host . $scriptDir;
+        $baseUrl = rtrim($baseUrl, '/');
+    }
+    
+    $data = [
+        'data' => [
+            'attributes' => [
+                'amount' => intval($amount * 100), // Convert to centavos
+                'currency' => 'PHP',
+                'type' => 'gcash',
+                'redirect' => [
+                    'success' => $baseUrl . '/index.php?page=payment_success&order_id=' . $orderId,
+                    'failed' => $baseUrl . '/index.php?page=payment_failed&order_id=' . $orderId
+                ],
+                'billing' => [
+                    'name' => 'Friedays Bocaue',
+                    'email' => 'orders@friedaysbocaue.com'
+                ]
+            ]
+        ]
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Basic ' . base64_encode(PAYMONGO_SECRET_KEY . ':')
+    ]);
+    
+    // Add timeout and SSL verification
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($curlError) {
+        return [
+            'error' => true,
+            'message' => 'Network error: ' . $curlError
+        ];
+    }
+
+    if ($httpCode === 200 || $httpCode === 201) {
+        $result = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return [
+                'error' => true,
+                'message' => 'Invalid JSON response from PayMongo'
+            ];
+        }
+        return $result['data'];
+    } else {
+        $errorData = json_decode($response, true);
+        $errorMessage = isset($errorData['errors'][0]['detail']) ? $errorData['errors'][0]['detail'] : $response;
+        
+        error_log('PayMongo API Error: HTTP ' . $httpCode . ' - ' . $response);
+        return [
+            'error' => true,
+            'http_code' => $httpCode,
+            'message' => 'PayMongo API Error: ' . $errorMessage
+        ];
+    }
+}
+
+function createPendingOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId = null, $deliveryAddress = null) {
+    global $pdo;
+    
+    $deliveryAddressId = !empty($deliveryAddressId) ? $deliveryAddressId : null;
+    $orderNumber = 'ORD' . date('Ymd') . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+    
+    $stmt = $pdo->prepare("INSERT INTO pending_orders (user_id, order_number, order_type, payment_method, total_amount, cart_items, delivery_address_id, delivery_address, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->execute([$userId, $orderNumber, $orderType, $paymentMethod, $totalAmount, json_encode($cartItems), $deliveryAddressId, $deliveryAddress]);
+    
+    return $pdo->lastInsertId();
+}
+
+function getPendingOrder($pendingOrderId) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT * FROM pending_orders WHERE id = ?");
+    $stmt->execute([$pendingOrderId]);
+    return $stmt->fetch();
+}
+
+function completePendingOrder($pendingOrderId) {
+    global $pdo;
+    
+    $pendingOrder = getPendingOrder($pendingOrderId);
+    if (!$pendingOrder) {
+        return false;
+    }
+    
+    // Create the actual order
+    $orderId = createOrder($pendingOrder['user_id'], $pendingOrder['order_type'], $pendingOrder['payment_method'], $pendingOrder['total_amount'], json_decode($pendingOrder['cart_items'], true), $pendingOrder['delivery_address_id'], $pendingOrder['delivery_address']);
+    
+    if ($orderId) {
+        // Delete pending order
+        $stmt = $pdo->prepare("DELETE FROM pending_orders WHERE id = ?");
+        $stmt->execute([$pendingOrderId]);
+        
+        // Update user spending
+        updateUserSpending($pendingOrder['user_id'], $pendingOrder['total_amount']);
+        
+        return $orderId;
+    }
+    
+    return false;
+}
+
+function deletePendingOrder($pendingOrderId) {
+    global $pdo;
+    $stmt = $pdo->prepare("DELETE FROM pending_orders WHERE id = ?");
+    $stmt->execute([$pendingOrderId]);
+}
 ?>

@@ -24,6 +24,9 @@ function showCheckout() {
         $orderType = sanitizeInput($_POST['order_type']);
         $paymentMethod = sanitizeInput($_POST['payment_method']);
         $deliveryAddressId = isset($_POST['delivery_address_id']) ? intval($_POST['delivery_address_id']) : null;
+        if ($deliveryAddressId === 0) {
+            $deliveryAddressId = null;
+        }
 
         if (empty($cartItems) || empty($orderType) || empty($paymentMethod)) {
             $error = "All fields are required.";
@@ -79,22 +82,52 @@ function showCheckout() {
         // Final total
         $totalAmount = $subtotalAfterDiscount + $tax + $deliveryFee;
 
-        // Create order
-        $orderId = createOrder($_SESSION['user_id'], $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId, $deliveryAddress);
-
-        if ($orderId) {
-            // Update user spending with original subtotal for loyalty tracking
-            updateUserSpending($_SESSION['user_id'], $subtotal);
-
-            // Clear cart (in session/localStorage handled by JS)
-            // Note: Since localStorage is client-side, we can't clear it here.
-            // The cart should be cleared on the client side after successful order.
-            header('Location: index.php?page=queue');
-            exit();
+        if ($paymentMethod === 'GCash') {
+            // Handle GCash payment with PayMongo
+            $pendingOrderId = createPendingOrder($_SESSION['user_id'], $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId, $deliveryAddress);
+            
+            if ($pendingOrderId) {
+                $source = createPayMongoGCashSource($totalAmount, "Friedays Bocaue Order #" . $pendingOrderId, $pendingOrderId);
+                
+                if ($source && !isset($source['error'])) {
+                    // Store source ID in pending order
+                    global $pdo;
+                    $stmt = $pdo->prepare("UPDATE pending_orders SET paymongo_source_id = ? WHERE id = ?");
+                    $stmt->execute([$source['id'], $pendingOrderId]);
+                    
+                    // Redirect to GCash payment page
+                    header('Location: ' . $source['attributes']['redirect']['checkout_url']);
+                    exit();
+                } else {
+                    // Handle PayMongo error
+                    $errorMessage = isset($source['message']) ? $source['message'] : 'Unknown PayMongo error';
+                    $error = "Failed to initialize GCash payment: " . $errorMessage;
+                    include 'views/checkout.php';
+                    return;
+                }
+            } else {
+                $error = "Failed to create pending order. Please try again.";
+                include 'views/checkout.php';
+                return;
+            }
         } else {
-            $error = "Failed to create order. Please try again.";
-            include 'views/checkout.php';
-            return;
+            // Handle Cash on Delivery
+            $orderId = createOrder($_SESSION['user_id'], $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId, $deliveryAddress);
+
+            if ($orderId) {
+                // Update user spending with original subtotal for loyalty tracking
+                updateUserSpending($_SESSION['user_id'], $subtotal);
+
+                // Clear cart (in session/localStorage handled by JS)
+                // Note: Since localStorage is client-side, we can't clear it here.
+                // The cart should be cleared on the client side after successful order.
+                header('Location: index.php?page=queue');
+                exit();
+            } else {
+                $error = "Failed to create order. Please try again.";
+                include 'views/checkout.php';
+                return;
+            }
         }
     }
 

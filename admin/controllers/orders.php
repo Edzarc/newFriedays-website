@@ -25,4 +25,4 @@ function showOrders() {
 
     include 'admin/views/orders.php';
 }
-?>
+
