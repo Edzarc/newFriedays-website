@@ -201,18 +201,20 @@ function toggleProductAvailability($productId, $available) {
 }
 
 // Order functions
-function createOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId = null, $deliveryAddress = null) {
+function createOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId = null, $deliveryAddress = null, $paymongoPaymentId = null, $paymongoLinkId = null) {
     global $pdo;
 
     // Generate order number
     $orderNumber = 'ORD' . date('Ymd') . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-    // Convert 0 or falsy delivery addr ess ID to NULL to satisfy foreign key constraint
+    // Convert 0 or falsy delivery address ID to NULL to satisfy foreign key constraint
     $deliveryAddressId = !empty($deliveryAddressId) ? $deliveryAddressId : null;
 
+    $paymentStatus = $paymongoPaymentId ? 'Paid' : 'Pending';
+
     // Insert order
-    $stmt = $pdo->prepare("INSERT INTO orders (user_id, order_number, order_type, payment_method, total_amount, delivery_address_id, delivery_address) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$userId, $orderNumber, $orderType, $paymentMethod, $totalAmount, $deliveryAddressId, $deliveryAddress]);
+    $stmt = $pdo->prepare("INSERT INTO orders (user_id, order_number, order_type, payment_method, total_amount, delivery_address_id, delivery_address, payment_status, paymongo_payment_id, paymongo_link_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$userId, $orderNumber, $orderType, $paymentMethod, $totalAmount, $deliveryAddressId, $deliveryAddress, $paymentStatus, $paymongoPaymentId, $paymongoLinkId]);
     $orderId = $pdo->lastInsertId();
 
     // Insert order items
@@ -546,12 +548,159 @@ function createPayMongoGCashSource($amount, $description, $orderId) {
         $errorMessage = isset($errorData['errors'][0]['detail']) ? $errorData['errors'][0]['detail'] : $response;
         
         error_log('PayMongo API Error: HTTP ' . $httpCode . ' - ' . $response);
+    }
+}
+
+// PayMongo Checkout Payment Functions
+function createPayMongoCheckout($amount, $description, $orderId) {
+    // Validate amount (minimum 1 PHP = 100 centavos)
+    if ($amount < 1) {
+        return [
+            'error' => true,
+            'message' => 'Amount must be at least ₱1.00'
+        ];
+    }
+    
+    $url = PAYMONGO_BASE_URL . '/checkout_sessions';
+    
+    // Construct proper base URL
+    if (php_sapi_name() === 'cli') {
+        // For CLI/testing, use localhost
+        $baseUrl = 'http://localhost/newFriedays-website';
+    } else {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $scriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '/newFriedays-website/index.php');
+        $baseUrl = $protocol . "://" . $host . $scriptDir;
+        $baseUrl = rtrim($baseUrl, '/');
+    }
+    
+    $data = [
+        'data' => [
+            'attributes' => [
+                'amount' => intval($amount * 100), // Convert to centavos
+                'currency' => 'PHP',
+                'description' => $description,
+                'line_items' => [
+                    [
+                        'amount' => intval($amount * 100),
+                        'currency' => 'PHP',
+                        'description' => $description,
+                        'quantity' => 1
+                    ]
+                ],
+                'payment_method_types' => ['gcash'],
+                'success_url' => $baseUrl . '/index.php?page=payment_success&order_id=' . $orderId,
+                'cancel_url' => $baseUrl . '/index.php?page=payment_failed&order_id=' . $orderId
+            ]
+        ]
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Basic ' . base64_encode(PAYMONGO_SECRET_KEY . ':')
+    ]);
+    
+    // Add timeout and SSL verification
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($curlError) {
+        return [
+            'error' => true,
+            'message' => 'Network error: ' . $curlError
+        ];
+    }
+
+    if ($httpCode === 200 || $httpCode === 201) {
+        $result = json_decode($response, true);
+        error_log('PayMongo checkout response: ' . $response);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return [
+                'error' => true,
+                'message' => 'Invalid JSON response from PayMongo'
+            ];
+        }
+        return $result['data'];
+    } else {
+        $errorData = json_decode($response, true);
+        error_log('PayMongo checkout error response: ' . $response);
+        $errorMessage = $response; // Show full response for debugging
+        
+        error_log('PayMongo API Error: HTTP ' . $httpCode . ' - ' . $response);
         return [
             'error' => true,
             'http_code' => $httpCode,
             'message' => 'PayMongo API Error: ' . $errorMessage
         ];
     }
+}
+
+function getPayMongoCheckoutSession($checkoutSessionId) {
+    if (empty($checkoutSessionId)) {
+        return [
+            'error' => true,
+            'message' => 'Missing PayMongo checkout session ID'
+        ];
+    }
+
+    $url = PAYMONGO_BASE_URL . '/checkout_sessions/' . urlencode($checkoutSessionId);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Basic ' . base64_encode(PAYMONGO_SECRET_KEY . ':')
+    ]);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($curlError) {
+        return [
+            'error' => true,
+            'message' => 'Network error: ' . $curlError
+        ];
+    }
+
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return [
+                'error' => true,
+                'message' => 'Invalid JSON response from PayMongo when retrieving checkout session'
+            ];
+        }
+
+        return $result['data'];
+    }
+
+    $errorData = json_decode($response, true);
+    $errorMessage = isset($errorData['errors'][0]['detail']) ? $errorData['errors'][0]['detail'] : $response;
+    return [
+        'error' => true,
+        'http_code' => $httpCode,
+        'message' => 'PayMongo API Error: ' . $errorMessage
+    ];
 }
 
 function createPendingOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId = null, $deliveryAddress = null) {
@@ -573,7 +722,7 @@ function getPendingOrder($pendingOrderId) {
     return $stmt->fetch();
 }
 
-function completePendingOrder($pendingOrderId) {
+function completePendingOrder($pendingOrderId, $paymongoPaymentId = null, $paymongoLinkId = null) {
     global $pdo;
     
     $pendingOrder = getPendingOrder($pendingOrderId);
@@ -581,8 +730,18 @@ function completePendingOrder($pendingOrderId) {
         return false;
     }
     
-    // Create the actual order
-    $orderId = createOrder($pendingOrder['user_id'], $pendingOrder['order_type'], $pendingOrder['payment_method'], $pendingOrder['total_amount'], json_decode($pendingOrder['cart_items'], true), $pendingOrder['delivery_address_id'], $pendingOrder['delivery_address']);
+    // Create the actual order and include PayMongo tracking IDs
+    $orderId = createOrder(
+        $pendingOrder['user_id'],
+        $pendingOrder['order_type'],
+        $pendingOrder['payment_method'],
+        $pendingOrder['total_amount'],
+        json_decode($pendingOrder['cart_items'], true),
+        $pendingOrder['delivery_address_id'],
+        $pendingOrder['delivery_address'],
+        $paymongoPaymentId,
+        $paymongoLinkId
+    );
     
     if ($orderId) {
         // Delete pending order

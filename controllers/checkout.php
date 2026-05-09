@@ -83,24 +83,30 @@ function showCheckout() {
         $totalAmount = $subtotalAfterDiscount + $tax + $deliveryFee;
 
         if ($paymentMethod === 'GCash') {
-            // Handle GCash payment with PayMongo
+            // Handle GCash payment with PayMongo Checkout
             $pendingOrderId = createPendingOrder($_SESSION['user_id'], $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId, $deliveryAddress);
             
             if ($pendingOrderId) {
-                $source = createPayMongoGCashSource($totalAmount, "Friedays Bocaue Order #" . $pendingOrderId, $pendingOrderId);
+                $checkout = createPayMongoCheckout($totalAmount, "Friedays Bocaue Order #" . $pendingOrderId, $pendingOrderId);
                 
-                if ($source && !isset($source['error'])) {
-                    // Store source ID in pending order
+                if ($checkout && !isset($checkout['error'])) {
+                    // Store checkout session ID in pending order
                     global $pdo;
                     $stmt = $pdo->prepare("UPDATE pending_orders SET paymongo_source_id = ? WHERE id = ?");
-                    $stmt->execute([$source['id'], $pendingOrderId]);
+                    $stmt->execute([$checkout['id'], $pendingOrderId]);
                     
-                    // Redirect to GCash payment page
-                    header('Location: ' . $source['attributes']['redirect']['checkout_url']);
-                    exit();
+                    // Immediately redirect to PayMongo checkout
+                    if (!empty($checkout['attributes']['checkout_url'])) {
+                        header('Location: ' . $checkout['attributes']['checkout_url']);
+                        exit();
+                    }
+
+                    $error = "Failed to initialize GCash payment: invalid PayMongo checkout URL.";
+                    include 'views/checkout.php';
+                    return;
                 } else {
                     // Handle PayMongo error
-                    $errorMessage = isset($source['message']) ? $source['message'] : 'Unknown PayMongo error';
+                    $errorMessage = isset($checkout['message']) ? $checkout['message'] : 'Unknown PayMongo error';
                     $error = "Failed to initialize GCash payment: " . $errorMessage;
                     include 'views/checkout.php';
                     return;

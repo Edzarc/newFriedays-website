@@ -18,9 +18,33 @@ function handlePaymentSuccess() {
         include 'views/payment_result.php';
         return;
     }
-    
-    // Complete the pending order
-    $orderId = completePendingOrder($pendingOrderId);
+
+    $checkoutSessionId = $pendingOrder['paymongo_source_id'] ?? null;
+    if (empty($checkoutSessionId)) {
+        $error = "Unable to verify payment: missing PayMongo checkout session ID.";
+        include 'views/payment_result.php';
+        return;
+    }
+
+    $checkoutSession = getPayMongoCheckoutSession($checkoutSessionId);
+    if (!$checkoutSession || isset($checkoutSession['error'])) {
+        $errorMsg = isset($checkoutSession['message']) ? $checkoutSession['message'] : 'Unknown error while verifying PayMongo payment.';
+        $error = "Unable to verify payment: " . $errorMsg;
+        include 'views/payment_result.php';
+        return;
+    }
+
+    $paymentIntent = $checkoutSession['attributes']['payment_intent'] ?? null;
+    $paymentStatus = $paymentIntent['attributes']['status'] ?? null;
+
+    if (empty($paymentIntent) || empty($paymentIntent['id']) || $paymentStatus !== 'succeeded') {
+        $error = "Payment has not been confirmed yet. Current status: " . ($paymentStatus ?? 'unknown') . ". Please contact support if your payment was already completed.";
+        include 'views/payment_result.php';
+        return;
+    }
+
+    $paymongoPaymentId = $paymentIntent['id'];
+    $orderId = completePendingOrder($pendingOrderId, $paymongoPaymentId, $checkoutSessionId);
     
     if ($orderId) {
         $success = "Payment successful! Your order has been placed.";
