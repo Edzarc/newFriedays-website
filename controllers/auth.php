@@ -11,6 +11,7 @@ function register() {
         $confirmPassword = $_POST['confirm_password'];
 
         $errors = [];
+        $verificationMessage = '';
 
         // Validation checks
         if (empty($name) || empty($email) || empty($phone) || empty($address) || empty($password)) {
@@ -37,21 +38,25 @@ function register() {
             $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
             global $pdo;
-            $stmt = $pdo->prepare("INSERT INTO users (name, email, password_hash, phone, address, role) VALUES (?, ?, ?, ?, ?, ?)");
-            if ($stmt->execute([$name, $email, $passwordHash, $phone, $address, 'customer'])) {
+            $stmt = $pdo->prepare("INSERT INTO users (name, email, password_hash, phone, address, role, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            if ($stmt->execute([$name, $email, $passwordHash, $phone, $address, 'customer', 0])) {
                 $userId = $pdo->lastInsertId();
                 addUserAddress($userId, 'Home', $address);
 
-                $_SESSION['user_id'] = $userId;
-                $_SESSION['role'] = 'customer';
-                header('Location: index.php?page=menu');
-                exit();
+                $token = createEmailVerificationToken($userId);
+                if (sendVerificationEmail($email, $name, $token)) {
+                    updateLastVerificationEmailSent($userId);
+                    $_SESSION['pending_verification_email'] = $email;
+                    header('Location: index.php?page=resend_verification');
+                    exit();
+                } else {
+                    $errors[] = 'Registration succeeded but verification email could not be sent. Please contact support.';
+                }
             } else {
                 $errors[] = "Registration failed. Please try again.";
             }
         }
 
-        // Show form with errors
         include 'views/register.php';
     } else {
         include 'views/register.php';
@@ -66,6 +71,12 @@ function login() {
         $user = getUserByEmail($email);
 
         if ($user && password_verify($password, $user['password_hash'])) {
+            if (empty($user['email_verified'])) {
+                $error = "Please verify your email address before logging in. Check your inbox for the verification email.";
+                include 'views/login.php';
+                return;
+            }
+
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['role'] = $user['role'];
             header('Location: index.php?page=menu&clear_cart=1');
@@ -83,5 +94,69 @@ function logout() {
     session_destroy();
     header('Location: index.php?clear_cart=1');
     exit();
+}
+
+function verifyEmail() {
+    $token = $_GET['token'] ?? '';
+    $verificationError = '';
+    $verificationSuccess = false;
+
+    if (empty($token)) {
+        $verificationError = 'Verification token is required.';
+    } else {
+        $record = getEmailVerificationRecord($token);
+
+        if (!$record) {
+            $verificationError = 'Invalid or expired verification token.';
+        } elseif (!empty($record['used_at'])) {
+            $verificationError = 'This verification link has already been used.';
+        } elseif (strtotime($record['expires_at']) < time()) {
+            $verificationError = 'This verification link has expired.';
+        } elseif (!empty($record['email_verified'])) {
+            $verificationSuccess = true;
+        } else {
+            if (markEmailVerified($record['id'], $record['user_id'])) {
+                $verificationSuccess = true;
+            } else {
+                $verificationError = 'Unable to verify your account at this time. Please try again later.';
+            }
+        }
+    }
+
+    include 'views/verify_email.php';
+}
+
+function resendVerification() {
+    $email = $_SESSION['pending_verification_email'] ?? $_POST['email'] ?? '';
+    $message = '';
+    $error = '';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $email = sanitizeInput($_POST['email']);
+        
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Please enter a valid email address.';
+        } else {
+            $user = getUserByEmail($email);
+            if (!$user) {
+                $error = 'No account found with this email address.';
+            } elseif (!empty($user['email_verified'])) {
+                $error = 'This email address is already verified.';
+            } elseif (!canResendVerificationEmail($user['id'])) {
+                $error = 'Please wait 30 seconds before requesting another verification email.';
+            } else {
+                // Generate new token or reuse existing unused one
+                $token = createEmailVerificationToken($user['id']);
+                if (sendVerificationEmail($email, $user['name'], $token)) {
+                    updateLastVerificationEmailSent($user['id']);
+                    $message = 'Verification email sent successfully. Please check your inbox.';
+                } else {
+                    $error = 'Failed to send verification email. Please try again later.';
+                }
+            }
+        }
+    }
+
+    include 'views/resend_verification.php';
 }
 ?>

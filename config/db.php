@@ -45,6 +45,14 @@ define('DB_NAME', $dbName);
 define('DB_USER', $dbUser);
 define('DB_PASS', $dbPass);
 
+// SMTP / Email configuration for Brevo relay
+define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp-relay.brevo.com');
+define('SMTP_PORT', getenv('SMTP_PORT') ?: 587);
+define('SMTP_USERNAME', getenv('SMTP_USERNAME') ?: '');
+define('SMTP_PASSWORD', getenv('SMTP_PASSWORD') ?: '');
+define('SMTP_FROM_EMAIL', getenv('SMTP_FROM_EMAIL') ?: 'edzel0arciga@gmail.com');
+define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'Friedays Bocaue');
+
 // PayMongo API Configuration
 define('PAYMONGO_SECRET_KEY', getenv('PAYMONGO_SECRET_KEY') ?: '');
 define('PAYMONGO_PUBLIC_KEY', 'pk_test_7fb19JTL7YkYSWYmcBx6iGmG');

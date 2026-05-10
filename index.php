@@ -16,6 +16,14 @@ switch ($page) {
         require_once 'controllers/auth.php';
         logout();
         break;
+    case 'verify_email':
+        require_once 'controllers/auth.php';
+        verifyEmail();
+        break;
+    case 'resend_verification':
+        require_once 'controllers/auth.php';
+        resendVerification();
+        break;
     case 'menu':
         require_once 'controllers/menu.php';
         showMenu();

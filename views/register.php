@@ -11,6 +11,11 @@
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+                <?php if (!empty($verificationMessage)): ?>
+                    <div class="email-message">
+                        <p><?php echo $verificationMessage; ?></p>
+                    </div>
+                <?php endif; ?>
                 <form action="index.php?page=register" method="post">
                     <div class="form-group">
                         <label for="name">Full Name</label>
@@ -36,7 +41,9 @@
                         <label for="confirm_password">Confirm Password</label>
                         <input type="password" id="confirm_password" name="confirm_password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Register</button>
+                    <div style="text-align: center; margin-bottom: 10px;">
+                        <button type="submit" class="btn btn-primary">Register</button>
+                    </div>
                 </form>
                 <p>Already have an account? <a href="index.php?page=login">Login here</a></p>
             </div>

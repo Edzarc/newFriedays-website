@@ -55,11 +55,114 @@ function getUserByEmail($email) {
     return $stmt->fetch();
 }
 
-function getUserAddresses($userId) {
+function createEmailVerificationToken($userId) {
     global $pdo;
-    $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC");
+    $token = bin2hex(random_bytes(32));
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+1 day'));
+    $stmt = $pdo->prepare("INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)");
+    $stmt->execute([$userId, $token, $expiresAt]);
+    return $token;
+}
+
+function getEmailVerificationRecord($token) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT evt.*, u.email_verified FROM email_verification_tokens evt JOIN users u ON evt.user_id = u.id WHERE evt.token = ? LIMIT 1");
+    $stmt->execute([$token]);
+    return $stmt->fetch();
+}
+
+function markEmailVerified($tokenId, $userId) {
+    global $pdo;
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET email_verified = 1, updated_at = NOW() WHERE id = ?");
+        $stmt->execute([$userId]);
+
+        $stmt = $pdo->prepare("UPDATE email_verification_tokens SET used_at = NOW() WHERE id = ?");
+        $stmt->execute([$tokenId]);
+
+        $pdo->commit();
+        return true;
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        return false;
+    }
+}
+
+function sendEmail($to, $subject, $htmlBody, $plainTextBody = '') {
+    require_once __DIR__ . '/../src/Exception.php';
+    require_once __DIR__ . '/../src/PHPMailer.php';
+    require_once __DIR__ . '/../src/SMTP.php';
+
+    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = SMTP_HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = SMTP_USERNAME;
+        $mail->Password = SMTP_PASSWORD;
+        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = SMTP_PORT;
+        $mail->SMTPAutoTLS = true;
+        $mail->CharSet = 'UTF-8';
+
+        $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
+        $mail->addAddress($to);
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $htmlBody;
+        $mail->AltBody = $plainTextBody ?: strip_tags($htmlBody);
+
+        return $mail->send();
+    } catch (PHPMailer\PHPMailer\Exception $exception) {
+        error_log('Email send failed: ' . $exception->getMessage());
+        return false;
+    }
+}
+
+function sendVerificationEmail($email, $name, $token) {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $basePath = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+    $verifyUrl = sprintf('%s://%s%s/index.php?page=verify_email&token=%s', $scheme, $host, $basePath, urlencode($token));
+
+    $subject = 'Verify your Friedays account';
+    $htmlBody = "<p>Hi " . htmlspecialchars($name) . ",</p>" .
+        "<p>Thank you for registering with Friedays Bocaue. Please verify your email address by clicking the button below:</p>" .
+        "<p><a href=\"{$verifyUrl}\" style=\"display:inline-block;padding:10px 18px;background:#f06c00;color:#fff;text-decoration:none;border-radius:4px;\">Verify Email</a></p>" .
+        "<p>If the button does not work, copy and paste the following link into your browser:</p>" .
+        "<p><a href=\"{$verifyUrl}\">{$verifyUrl}</a></p>" .
+        "<p>If you did not register, you can ignore this message.</p>";
+
+    $plainTextBody = "Hi {$name},\n\n" .
+        "Thank you for registering with Friedays Bocaue. Please verify your email address using the link below:\n" .
+        "{$verifyUrl}\n\n" .
+        "If you did not register, you can ignore this message.\n";
+
+    return sendEmail($email, $subject, $htmlBody, $plainTextBody);
+}
+
+function canResendVerificationEmail($userId) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT last_verification_email_sent FROM users WHERE id = ?");
     $stmt->execute([$userId]);
-    return $stmt->fetchAll();
+    $user = $stmt->fetch();
+    
+    if (!$user || !$user['last_verification_email_sent']) {
+        return true; // Never sent, so can send
+    }
+    
+    $lastSent = strtotime($user['last_verification_email_sent']);
+    $now = time();
+    return ($now - $lastSent) >= 30; // 30 seconds cooldown
+}
+
+function updateLastVerificationEmailSent($userId) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE users SET last_verification_email_sent = NOW() WHERE id = ?");
+    return $stmt->execute([$userId]);
 }
 
 function getUserAddressById($addressId) {

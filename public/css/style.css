@@ -3,7 +3,7 @@
 :root {
     --clr-primary: #f97415;
     --clr-primary-hover: #c2410c;
-    --clr-secondary: #431407;
+    --clr-secondary: #7e3b28;
     --clr-background: #fdfdfd;
     --clr-surface: #ffffff;
     --clr-text: #451a03;
@@ -65,12 +65,12 @@ main {
 }
 
 .btn-secondary {
-    background-color: var(--clr-secondary);
-    color: #5A3E36;
+    background-color:var(--clr-secondary);
+    color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #2d0f06;
+    background-color: #632e20;
 }
 
 .btn-danger {
@@ -693,14 +693,7 @@ header {
     transform: translateY(-1px);
 }
 
-.btn-secondary {
-    background: #8d5a31;
-    color: white;
-}
 
-.btn-secondary:hover {
-    background: #6f421f;
-}
 
 .btn-lg {
     padding: 14px 32px;
@@ -1468,6 +1461,11 @@ header {
     margin: 2rem auto;
     padding: 2rem;
     text-align: center;
+}
+
+.email-message {
+    padding: 2rem;
+    border-radius: 8px;
 }
 
 .success-message, .error-message {

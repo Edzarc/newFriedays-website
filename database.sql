@@ -15,8 +15,21 @@ CREATE TABLE users (
     role ENUM('customer', 'staff', 'admin') NOT NULL DEFAULT 'customer',
     loyalty_tier ENUM('Bronze', 'Silver', 'Gold', 'Platinum') DEFAULT 'Bronze',
     total_spending DECIMAL(10,2) DEFAULT 0.00,
+    email_verified TINYINT(1) DEFAULT 0,
+    last_verification_email_sent TIMESTAMP DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Email verification tokens table
+CREATE TABLE email_verification_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(128) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- User addresses table
