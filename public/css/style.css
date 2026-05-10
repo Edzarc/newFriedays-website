@@ -893,7 +893,7 @@ header {
 }
 
 .dashboard-grid {
-    display:-ms-grid;
+    display:grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
     margin-bottom: 2rem;
@@ -934,6 +934,11 @@ header {
 .quick-actions {
     display: flex;
     gap: 1rem;
+}
+
+.quick-actions {
+    display: flex;
+    justify-content: center;
 }
 
 .orders-table {
