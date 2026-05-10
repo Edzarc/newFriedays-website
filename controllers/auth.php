@@ -72,9 +72,9 @@ function login() {
 
         if ($user && password_verify($password, $user['password_hash'])) {
             if (empty($user['email_verified'])) {
-                $error = "Please verify your email address before logging in. Check your inbox for the verification email.";
-                include 'views/login.php';
-                return;
+                $_SESSION['pending_verification_email'] = $email;
+                header('Location: index.php?page=resend_verification');
+                exit();
             }
 
             $_SESSION['user_id'] = $user['id'];
@@ -127,32 +127,29 @@ function verifyEmail() {
 }
 
 function resendVerification() {
-    $email = $_SESSION['pending_verification_email'] ?? $_POST['email'] ?? '';
+    $email = $_SESSION['pending_verification_email'] ?? '';
     $message = '';
     $error = '';
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $email = sanitizeInput($_POST['email']);
-        
-        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = 'Please enter a valid email address.';
+    if (empty($email)) {
+        $error = 'No pending verification email found. Please register or log in again to continue.';
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
+        $user = getUserByEmail($email);
+        if (!$user) {
+            $error = 'No account found with this email address.';
+        } elseif (!empty($user['email_verified'])) {
+            $message = 'This email address is already verified. You can now <a href="index.php?page=login">log in</a>.';
+        } elseif (!canResendVerificationEmail($user['id'])) {
+            $error = 'Please wait 30 seconds before requesting another verification email.';
         } else {
-            $user = getUserByEmail($email);
-            if (!$user) {
-                $error = 'No account found with this email address.';
-            } elseif (!empty($user['email_verified'])) {
-                $error = 'This email address is already verified.';
-            } elseif (!canResendVerificationEmail($user['id'])) {
-                $error = 'Please wait 30 seconds before requesting another verification email.';
+            $token = createEmailVerificationToken($user['id']);
+            if (sendVerificationEmail($email, $user['name'], $token)) {
+                updateLastVerificationEmailSent($user['id']);
+                $message = 'Verification email sent successfully. Please check your inbox.';
             } else {
-                // Generate new token or reuse existing unused one
-                $token = createEmailVerificationToken($user['id']);
-                if (sendVerificationEmail($email, $user['name'], $token)) {
-                    updateLastVerificationEmailSent($user['id']);
-                    $message = 'Verification email sent successfully. Please check your inbox.';
-                } else {
-                    $error = 'Failed to send verification email. Please try again later.';
-                }
+                $error = 'Failed to send verification email. Please try again later.';
             }
         }
     }

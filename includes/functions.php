@@ -165,6 +165,13 @@ function updateLastVerificationEmailSent($userId) {
     return $stmt->execute([$userId]);
 }
 
+function getUserAddresses($userId) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$userId]);
+    return $stmt->fetchAll();
+}
+
 function getUserAddressById($addressId) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE id = ?");
