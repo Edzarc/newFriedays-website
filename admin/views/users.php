@@ -46,7 +46,8 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Phone</th>
-                                <th>Position</th>
+                                <th>Role</th>
+                                <th></th>Position</th>
                                 <th>Department</th>
                                 <th>Hire Date</th>
                                 <th>Status</th>
@@ -56,19 +57,31 @@
                         <tbody id="staff-tbody">
                             <?php if (!empty($staffMembers)): ?>
                                 <?php foreach ($staffMembers as $staff): ?>
-                                    <tr data-staff-id="<?php echo $staff['staff_id']; ?>">
+                                    <tr
+                                        data-staff-id="<?php echo $staff['staff_id']; ?>"
+                                        data-name="<?php echo htmlspecialchars($staff['name'], ENT_QUOTES); ?>"
+                                        data-email="<?php echo htmlspecialchars($staff['email'], ENT_QUOTES); ?>"
+                                        data-phone="<?php echo htmlspecialchars($staff['phone'], ENT_QUOTES); ?>"
+                                        data-address="<?php echo htmlspecialchars($staff['address'], ENT_QUOTES); ?>"
+                                        data-role="<?php echo htmlspecialchars($staff['role'], ENT_QUOTES); ?>"
+                                        data-position="<?php echo htmlspecialchars($staff['position'], ENT_QUOTES); ?>"
+                                        data-department="<?php echo htmlspecialchars($staff['department'], ENT_QUOTES); ?>"
+                                        data-hire-date="<?php echo htmlspecialchars(date('Y-m-d', strtotime($staff['hire_date'])), ENT_QUOTES); ?>"
+                                        data-employment-status="<?php echo htmlspecialchars($staff['employment_status'], ENT_QUOTES); ?>"
+                                    >
                                         <td><?php echo $staff['staff_id']; ?></td>
                                         <td><?php echo $staff['user_id']; ?></td>
                                         <td><?php echo htmlspecialchars($staff['name']); ?></td>
                                         <td><?php echo htmlspecialchars($staff['email']); ?></td>
                                         <td><?php echo htmlspecialchars($staff['phone']); ?></td>
+                                        <td><?php echo htmlspecialchars($staff['role']); ?></td>
                                         <td><?php echo htmlspecialchars($staff['position']); ?></td>
                                         <td><?php echo htmlspecialchars($staff['department']); ?></td>
                                         <td><?php echo date('M d, Y', strtotime($staff['hire_date'])); ?></td>
                                         <td><?php echo htmlspecialchars($staff['employment_status']); ?></td>
                                         <td>
                                             <button class="btn btn-sm btn-secondary edit-employee" id="btn-edit-employee" data-staff-id="<?php echo $staff['staff_id']; ?>">Edit</button>
-                                            <button class="btn btn-sm btn-danger delete-employee" data-staff-id="<?php echo $staff['staff_id']; ?>" data-staff-name="<?php echo htmlspecialchars($staff['name']); ?>" style="margin-left: 5px;">Delete</button>
+                                            <button class="btn btn-sm btn-danger delete-employee" data-staff-id="<?php echo $staff['staff_id']; ?>" data-staff-name="<?php echo htmlspecialchars($staff['name'], ENT_QUOTES); ?>" style="margin-left: 5px;">Delete</button>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

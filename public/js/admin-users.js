@@ -173,26 +173,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = document.querySelector(`tr[data-staff-id="${staffId}"]`);
         if (!row) return;
 
-        const cells = row.cells;
-        const name = cells[2].textContent;
-        const email = cells[3].textContent;
-        const phone = cells[4].textContent;
-        const position = cells[5].textContent;
-        const department = cells[6].textContent;
-        const hireDate = row.getAttribute('data-hire-date') || cells[7].textContent;
-        const status = cells[8].textContent;
-
-        // Convert date format from "May 10, 2026" to "2026-05-10"
-        const hireDateObj = new Date(cells[7].textContent);
-        const formattedDate = hireDateObj.toISOString().split('T')[0];
+        const name = row.dataset.name || '';
+        const email = row.dataset.email || '';
+        const phone = row.dataset.phone || '';
+        const address = row.dataset.address || '';
+        const position = row.dataset.position || '';
+        const department = row.dataset.department || '';
+        const hireDate = row.dataset.hireDate || '';
+        const status = row.dataset.employmentStatus || '';
 
         document.getElementById('staff-id').value = staffId;
         document.getElementById('employee-name').value = name;
         document.getElementById('employee-email').value = email;
         document.getElementById('employee-phone').value = phone;
+        document.getElementById('employee-address').value = address;
         document.getElementById('employee-position').value = position;
         document.getElementById('employee-department').value = department;
-        document.getElementById('employee-hire-date').value = formattedDate;
+        document.getElementById('employee-hire-date').value = hireDate;
         document.getElementById('employee-status').value = status;
 
         document.getElementById('employee-modal-title').textContent = 'Edit Employee';

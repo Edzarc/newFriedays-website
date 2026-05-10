@@ -571,7 +571,7 @@ function getAllUsers() {
 function getAllStaff() {
     global $pdo;
     $stmt = $pdo->query(
-        "SELECT s.id AS staff_id, u.id AS user_id, u.name, u.email, u.phone, u.role, s.position, s.department, s.hire_date, s.employment_status, s.created_at AS staff_created_at " .
+        "SELECT s.id AS staff_id, u.id AS user_id, u.name, u.email, u.phone, u.address, u.role, s.position, s.department, s.hire_date, s.employment_status, s.created_at AS staff_created_at " .
         "FROM staff s JOIN users u ON s.user_id = u.id ORDER BY s.created_at DESC"
     );
     return $stmt->fetchAll();
