@@ -19,19 +19,14 @@
 
                     <div class="your-position">
                         <h3>Your Order</h3>
-                        <div class="position-number" id="your-position">
-                            <?php if ($userQueue): ?>
-                                #<?php echo $userQueue['queue_number']; ?> - <?php echo ucfirst($userQueue['status']); ?>
-                            <?php else: ?>
-                                No active orders
-                            <?php endif; ?>
+                        <div class="position-number" id="your-position" data-status="<?php echo htmlspecialchars($userQueue['order_status'] ?? $userQueue['status'] ?? 'none'); ?>">
+                            <?php echo getQueuePositionHtml($userQueue); ?>
                         </div>
                     </div>
                 </div>
 
                 <div class="queue-info">
-                    <p>Your order is being prepared. We'll notify you when it's ready!</p>
-                    <p><strong>Note:</strong> Queue updates automatically every 5 seconds.</p>
+                    <?php echo getQueueInfoHtml($userQueue); ?>
                 </div>
 
                 <div class="queue-actions">

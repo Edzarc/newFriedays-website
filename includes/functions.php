@@ -495,14 +495,83 @@ function getCurrentServing() {
 function getUserQueuePosition($userId) {
     global $pdo;
     $stmt = $pdo->prepare("
-        SELECT q.queue_number, q.status
+        SELECT q.queue_number, q.status, o.status as order_status, o.order_type
         FROM queue q
         JOIN orders o ON q.order_id = o.id
-        WHERE o.user_id = ? AND q.status IN ('Waiting', 'Serving')
+        WHERE o.user_id = ? AND q.status IN ('Waiting', 'Serving') OR (o.user_id = ? AND o.status IN ('Ready', 'Completed', 'Cancelled'))
         ORDER BY q.created_at DESC LIMIT 1
     ");
-    $stmt->execute([$userId]);
+    $stmt->execute([$userId, $userId]);
     return $stmt->fetch();
+}
+
+function getQueuePositionHtml($userQueue) {
+    if (!$userQueue) {
+        return 'No active orders';
+    }
+
+    $queueNumber = intval($userQueue['queue_number']);
+    $displayStatus = $userQueue['order_status'] ?? $userQueue['status'];
+
+    if ($displayStatus === 'Ready') {
+        return '<span class="ready-badge">✓</span> Your order is READY! #' . $queueNumber;
+    }
+
+    if ($displayStatus === 'Completed') {
+        return '<span class="completed-badge">✓</span> Order Completed #' . $queueNumber;
+    }
+
+    if ($displayStatus === 'Cancelled') {
+        return '<span class="cancelled-badge">✗</span> Order Cancelled #' . $queueNumber;
+    }
+
+    return '#' . $queueNumber . ' - ' . ucfirst($displayStatus);
+}
+
+function getQueueInfoHtml($userQueue) {
+    if (!$userQueue) {
+        return '<p>No active orders found.</p><p><strong>Note:</strong> Queue updates automatically every 5 seconds.</p>';
+    }
+
+    $orderStatus = $userQueue['order_status'] ?? $userQueue['status'];
+    $orderType = $userQueue['order_type'] ?? 'Pickup';
+    $messageClass = '';
+    $message = '';
+
+    if ($orderStatus === 'Ready') {
+        $messageClass = 'ready-message';
+        if ($orderType === 'Pickup') {
+            $message = 'Your order is READY for pickup! Please proceed to the counter.';
+        } elseif ($orderType === 'Dine In') {
+            $message = 'Your order is READY! Please proceed to your table.';
+        } elseif ($orderType === 'Delivery') {
+            $message = 'Your order is READY! Our delivery driver will be with you shortly.';
+        }
+    } elseif ($orderStatus === 'Completed') {
+        $messageClass = 'completed-message';
+        if ($orderType === 'Pickup') {
+            $message = '<strong>Order completed!</strong> Thank you for picking up your order.';
+        } elseif ($orderType === 'Dine In') {
+            $message = '<strong>Order completed!</strong> Thank you for dining with us.';
+        } elseif ($orderType === 'Delivery') {
+            $message = '<strong>Order completed!</strong> Thank you for choosing our delivery service.';
+        }
+    } elseif ($orderStatus === 'Cancelled') {
+        $messageClass = 'cancelled-message';
+        $message = '<strong>Order cancelled.</strong> If you have any questions, please contact our staff.';
+    } else {
+        if ($orderType === 'Pickup') {
+            $message = 'Your order is being prepared. We\'ll notify you when it\'s ready for pickup!';
+        } elseif ($orderType === 'Dine In') {
+            $message = 'Your order is being prepared. We\'ll notify you when it\'s ready to serve!';
+        } elseif ($orderType === 'Delivery') {
+            $message = 'Your order is being prepared. We\'ll notify you when it\'s ready for delivery!';
+        }
+    }
+
+    $classAttr = $messageClass ? ' class="' . $messageClass . '"' : '';
+
+    return '<p' . $classAttr . '>' . $message . '</p><p><strong>Note:</strong> Queue updates automatically every 5 seconds.</p>';
 }
 
 function updateOrderStatus($orderId, $status) {
@@ -513,6 +582,9 @@ function updateOrderStatus($orderId, $status) {
     $success = $stmt->execute([$status, $orderId]);
 
     if ($success && $status === 'Ready' && $order && $order['status'] !== 'Ready') {
+        // Update queue status to 'Serving' when order is Ready
+        $stmt = $pdo->prepare("UPDATE queue SET status = 'Serving' WHERE order_id = ?");
+        $stmt->execute([$orderId]);
         sendOrderReadyEmail($orderId);
     }
 

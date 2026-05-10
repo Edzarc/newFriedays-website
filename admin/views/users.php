@@ -47,7 +47,7 @@
                                 <th>Email</th>
                                 <th>Phone</th>
                                 <th>Role</th>
-                                <th></th>Position</th>
+                                <th>Position</th>
                                 <th>Department</th>
                                 <th>Hire Date</th>
                                 <th>Status</th>
@@ -84,7 +84,7 @@
                                             <button class="btn btn-sm btn-danger delete-employee" data-staff-id="<?php echo $staff['staff_id']; ?>" data-staff-name="<?php echo htmlspecialchars($staff['name'], ENT_QUOTES); ?>" style="margin-left: 5px;">Delete</button>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
+                                <?php endforeach; ?>    
                             <?php else: ?>
                                 <tr>
                                     <td colspan="10">No staff members found.</td>
