@@ -130,17 +130,27 @@ function resendVerification() {
     $email = $_SESSION['pending_verification_email'] ?? '';
     $message = '';
     $error = '';
+    $isVerified = false;
 
     if (empty($email)) {
         $error = 'No pending verification email found. Please register or log in again to continue.';
-    }
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
+    } else {
         $user = getUserByEmail($email);
         if (!$user) {
             $error = 'No account found with this email address.';
         } elseif (!empty($user['email_verified'])) {
-            $message = 'This email address is already verified. You can now <a href="index.php?page=login">log in</a>.';
+            $isVerified = true;
+            $message = 'Your email has already been verified. You can now <a href="index.php?page=login">log in</a>.';
+        }
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error) && !$isVerified) {
+        $user = getUserByEmail($email);
+        if (!$user) {
+            $error = 'No account found with this email address.';
+        } elseif (!empty($user['email_verified'])) {
+            $isVerified = true;
+            $message = 'Your email has already been verified. You can now <a href="index.php?page=login">log in</a>.';
         } elseif (!canResendVerificationEmail($user['id'])) {
             $error = 'Please wait 30 seconds before requesting another verification email.';
         } else {
