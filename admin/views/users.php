@@ -35,6 +35,9 @@
                     </div>
                 <h2>Staff Management</h2>
                 <div class="staff-table-container" style="margin-top: 2rem;">
+                    <div class="table-actions" style="margin-bottom: 1rem;">
+                        <button class="btn btn-primary" id="create-employee-btn">+ Create New Employee</button>
+                    </div>
                     <table class="users-table">
                         <thead>
                             <tr>
@@ -47,12 +50,13 @@
                                 <th>Department</th>
                                 <th>Hire Date</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="staff-tbody">
                             <?php if (!empty($staffMembers)): ?>
                                 <?php foreach ($staffMembers as $staff): ?>
-                                    <tr>
+                                    <tr data-staff-id="<?php echo $staff['staff_id']; ?>">
                                         <td><?php echo $staff['staff_id']; ?></td>
                                         <td><?php echo $staff['user_id']; ?></td>
                                         <td><?php echo htmlspecialchars($staff['name']); ?></td>
@@ -62,11 +66,15 @@
                                         <td><?php echo htmlspecialchars($staff['department']); ?></td>
                                         <td><?php echo date('M d, Y', strtotime($staff['hire_date'])); ?></td>
                                         <td><?php echo htmlspecialchars($staff['employment_status']); ?></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-secondary edit-employee" id="btn-edit-employee" data-staff-id="<?php echo $staff['staff_id']; ?>">Edit</button>
+                                            <button class="btn btn-sm btn-danger delete-employee" data-staff-id="<?php echo $staff['staff_id']; ?>" data-staff-name="<?php echo htmlspecialchars($staff['name']); ?>" style="margin-left: 5px;">Delete</button>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="9">No staff members found.</td>
+                                    <td colspan="10">No staff members found.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -136,6 +144,78 @@
                         <div id="user-orders-content">
                             <!-- User orders will be loaded here -->
                         </div>
+                    </div>
+                </div>
+
+                <!-- Employee Create/Edit Modal -->
+                <div id="employee-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3 id="employee-modal-title">Create New Employee</h3>
+                        <form id="employee-form">
+                            <input type="hidden" id="staff-id" value="">
+                            
+                            <div class="form-group">
+                                <label for="employee-name">Full Name *</label>
+                                <input type="text" id="employee-name" name="name" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="employee-email">Email *</label>
+                                <input type="email" id="employee-email" name="email" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="employee-phone">Phone *</label>
+                                <input type="tel" id="employee-phone" name="phone" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="employee-address">Address *</label>
+                                <textarea id="employee-address" name="address" required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="employee-position">Position *</label>
+                                <input type="text" id="employee-position" name="position" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="employee-department">Department *</label>
+                                <select id="employee-department" name="department" required>
+                                    <option value="">Select Department</option>
+                                    <option value="Kitchen">Kitchen</option>
+                                    <option value="Cashier">Cashier</option>
+                                    <option value="Delivery">Delivery</option>
+                                    <option value="Management">Management</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="employee-hire-date">Hire Date *</label>
+                                <input type="date" id="employee-hire-date" name="hire_date" required>
+                            </div>
+
+                            <div class="form-group" id="employment-status-group" style="display: none;">
+                                <label for="employee-status">Employment Status *</label>
+                                <select id="employee-status" name="employment_status">
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                    <option value="On Leave">On Leave</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="password-group">
+                                <label for="employee-password">Password *</label>
+                                <input type="password" id="employee-password" name="password" required>
+                                <small>Leave blank to keep current password when editing</small>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Save Employee</button>
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('employee-modal').style.display = 'none';">Cancel</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

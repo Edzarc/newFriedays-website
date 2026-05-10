@@ -28,10 +28,7 @@ if (!in_array($newStatus, $validStatuses)) {
     exit();
 }
 
-global $pdo;
-
-$stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-$success = $stmt->execute([$newStatus, $orderId]);
+$success = updateOrderStatus($orderId, $newStatus);
 
 if ($success) {
     echo json_encode(['success' => true, 'message' => 'Order status updated successfully']);

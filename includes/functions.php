@@ -339,6 +339,108 @@ function createOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartIte
     return $orderId;
 }
 
+function formatCurrency($amount) {
+    return '₱' . number_format((float)$amount, 2);
+}
+
+function buildOrderItemsTableHtml($orderItems) {
+    $html = '<table style="width:100%;border-collapse:collapse;margin-top:10px;">';
+    $html .= '<thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Item</th><th style="text-align:center;padding:8px;border-bottom:1px solid #ddd;">Qty</th><th style="text-align:right;padding:8px;border-bottom:1px solid #ddd;">Total</th></tr></thead>';
+    $html .= '<tbody>';
+
+    foreach ($orderItems as $item) {
+        $itemTotal = $item['price_at_purchase'] * $item['quantity'];
+        $html .= '<tr>' .
+            '<td style="padding:8px;border-bottom:1px solid #eee;">' . htmlspecialchars($item['name']) . '</td>' .
+            '<td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">' . intval($item['quantity']) . '</td>' .
+            '<td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">' . formatCurrency($itemTotal) . '</td>' .
+            '</tr>';
+    }
+
+    $html .= '</tbody></table>';
+    return $html;
+}
+
+function sendOrderConfirmationEmail($orderId) {
+    $order = getOrderById($orderId);
+    if (!$order) {
+        return false;
+    }
+
+    $user = getUserById($order['user_id']);
+    if (!$user || !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $orderItems = getOrderItems($orderId);
+    $paymentMessage = '';
+    if ($order['payment_method'] === 'GCash') {
+        $paymentMessage = $order['payment_status'] === 'Paid'
+            ? '<p>Your payment via GCash has been successfully received.</p>'
+            : '<p>Your payment via GCash is being processed. We will update you when it is confirmed.</p>';
+    } else {
+        $paymentMessage = '<p>Your order has been placed successfully. Please pay in cash when your order is ready for pickup or delivered.</p>';
+    }
+
+    $deliveryAddressSection = '';
+    if ($order['order_type'] === 'Delivery' && !empty($order['delivery_address'])) {
+        $deliveryAddressSection = '<p><strong>Delivery Address:</strong><br>' . nl2br(htmlspecialchars($order['delivery_address'])) . '</p>';
+    }
+
+    $subject = 'Friedays Order Confirmation - ' . htmlspecialchars($order['order_number']);
+    $htmlBody = '<p>Hi ' . htmlspecialchars($user['name']) . ',</p>' .
+        '<p>Thank you for your order. Here are your order details:</p>' .
+        '<p><strong>Order Number:</strong> ' . htmlspecialchars($order['order_number']) . '<br>' .
+        '<strong>Order Type:</strong> ' . htmlspecialchars($order['order_type']) . '<br>' .
+        '<strong>Payment Method:</strong> ' . htmlspecialchars($order['payment_method']) . '<br>' .
+        '<strong>Order Status:</strong> ' . htmlspecialchars($order['status']) . '</p>' .
+        $paymentMessage .
+        $deliveryAddressSection .
+        buildOrderItemsTableHtml($orderItems) .
+        '<p style="text-align:right;font-weight:bold;">Total: ' . formatCurrency($order['total_amount']) . '</p>' .
+        '<p>If you have any questions, reply to this email or contact our support.</p>' .
+        '<p>Thank you for choosing Friedays Bocaue!</p>';
+
+    return sendEmail($user['email'], $subject, $htmlBody);
+}
+
+function sendOrderReadyEmail($orderId) {
+    $order = getOrderById($orderId);
+    if (!$order) {
+        return false;
+    }
+
+    $user = getUserById($order['user_id']);
+    if (!$user || !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $orderItems = getOrderItems($orderId);
+    $deliveryMessage = '';
+    if ($order['order_type'] === 'Delivery') {
+        $deliveryMessage = '<p>Your order is ready for delivery and will be on its way shortly.</p>';
+    } elseif ($order['order_type'] === 'Pickup') {
+        $deliveryMessage = '<p>Your order is ready for pickup at the counter.</p>';
+    } elseif ($order['order_type'] === 'Dine In') {
+        $deliveryMessage = '<p>Your order is ready. Please proceed to your table or the pickup counter.</p>';
+    }
+
+    $subject = 'Your Friedays Order is Ready - ' . htmlspecialchars($order['order_number']);
+    $htmlBody = '<p>Hi ' . htmlspecialchars($user['name']) . ',</p>' .
+        '<p>Your order is now <strong>Ready</strong>.</p>' .
+        '<p><strong>Order Number:</strong> ' . htmlspecialchars($order['order_number']) . '<br>' .
+        '<strong>Order Type:</strong> ' . htmlspecialchars($order['order_type']) . '<br>' .
+        '<strong>Payment Method:</strong> ' . htmlspecialchars($order['payment_method']) . '<br>' .
+        '<strong>Order Status:</strong> ' . htmlspecialchars($order['status']) . '</p>' .
+        $deliveryMessage .
+        '<p><strong>Total:</strong> ' . formatCurrency($order['total_amount']) . '</p>' .
+        buildOrderItemsTableHtml($orderItems) .
+        '<p>If you have any questions, reply to this email or contact our support.</p>' .
+        '<p>Thank you for choosing Friedays Bocaue!</p>';
+
+    return sendEmail($user['email'], $subject, $htmlBody);
+}
+
 function getOrderById($orderId) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ?");
@@ -405,8 +507,16 @@ function getUserQueuePosition($userId) {
 
 function updateOrderStatus($orderId, $status) {
     global $pdo;
+    $order = getOrderById($orderId);
+
     $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-    $stmt->execute([$status, $orderId]);
+    $success = $stmt->execute([$status, $orderId]);
+
+    if ($success && $status === 'Ready' && $order && $order['status'] !== 'Ready') {
+        sendOrderReadyEmail($orderId);
+    }
+
+    return $success;
 }
 
 function getQueueOrders($status = null) {
@@ -861,6 +971,7 @@ function completePendingOrder($pendingOrderId, $paymongoPaymentId = null, $paymo
         // Update user spending
         updateUserSpending($pendingOrder['user_id'], $pendingOrder['total_amount']);
         
+        sendOrderConfirmationEmail($orderId);
         return $orderId;
     }
     

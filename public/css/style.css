@@ -1333,11 +1333,18 @@ header {
 .edit-product:hover{
     background-color: #2563eb;
 }
-
-
-.btn-danger {
+.delete-product {
     background-color: var(--clr-error);
     color: white;
+}
+
+.edit-employee {
+    background-color: #3B82F6;
+    margin-bottom: 5px;
+}
+
+#btn-edit-employee:hover {
+    background-color: #2563eb;
 }
 
 .btn-danger:hover {

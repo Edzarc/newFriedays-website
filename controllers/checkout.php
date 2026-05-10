@@ -123,6 +123,7 @@ function showCheckout() {
             if ($orderId) {
                 // Update user spending with original subtotal for loyalty tracking
                 updateUserSpending($_SESSION['user_id'], $subtotal);
+                sendOrderConfirmationEmail($orderId);
 
                 // Clear cart (in session/localStorage handled by JS)
                 // Note: Since localStorage is client-side, we can't clear it here.
