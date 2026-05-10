@@ -545,14 +545,46 @@ function getCurrentServing() {
 
 function getUserQueuePosition($userId) {
     global $pdo;
+
+    // First, check for Ready orders (highest priority)
     $stmt = $pdo->prepare("
-        SELECT q.queue_number, q.status, o.status as order_status, o.order_type
+        SELECT q.queue_number, q.status, o.status as order_status, o.order_type, o.order_number
         FROM queue q
         JOIN orders o ON q.order_id = o.id
-        WHERE o.user_id = ? AND q.status IN ('Waiting', 'Serving') OR (o.user_id = ? AND o.status IN ('Ready', 'Completed', 'Cancelled'))
+        WHERE o.user_id = ? AND o.status = 'Ready'
+        ORDER BY q.queue_number ASC LIMIT 1
+    ");
+    $stmt->execute([$userId]);
+    $readyOrder = $stmt->fetch();
+
+    if ($readyOrder) {
+        return $readyOrder;
+    }
+
+    // Then, check for active queue positions (Waiting/Serving)
+    $stmt = $pdo->prepare("
+        SELECT q.queue_number, q.status, o.status as order_status, o.order_type, o.order_number
+        FROM queue q
+        JOIN orders o ON q.order_id = o.id
+        WHERE o.user_id = ? AND q.status IN ('Waiting', 'Serving')
+        ORDER BY q.queue_number ASC LIMIT 1
+    ");
+    $stmt->execute([$userId]);
+    $activeOrder = $stmt->fetch();
+
+    if ($activeOrder) {
+        return $activeOrder;
+    }
+
+    // Finally, check for cancelled orders
+    $stmt = $pdo->prepare("
+        SELECT q.queue_number, q.status, o.status as order_status, o.order_type, o.order_number
+        FROM queue q
+        JOIN orders o ON q.order_id = o.id
+        WHERE o.user_id = ? AND o.status = 'Cancelled'
         ORDER BY q.created_at DESC LIMIT 1
     ");
-    $stmt->execute([$userId, $userId]);
+    $stmt->execute([$userId]);
     return $stmt->fetch();
 }
 
@@ -562,21 +594,18 @@ function getQueuePositionHtml($userQueue) {
     }
 
     $queueNumber = intval($userQueue['queue_number']);
+    $orderNumber = htmlspecialchars($userQueue['order_number']);
     $displayStatus = $userQueue['order_status'] ?? $userQueue['status'];
 
     if ($displayStatus === 'Ready') {
-        return '<span class="ready-badge">✓</span> Your order is READY! #' . $queueNumber;
-    }
-
-    if ($displayStatus === 'Completed') {
-        return '<span class="completed-badge">✓</span> Order Completed #' . $queueNumber;
+        return '<span class="ready-badge">✓</span> Your order is READY! #' . $queueNumber . ' <br>Order: ' . $orderNumber;
     }
 
     if ($displayStatus === 'Cancelled') {
-        return '<span class="cancelled-badge">✗</span> Order Cancelled #' . $queueNumber;
+        return '<span class="cancelled-badge">✗</span> Order Cancelled #' . $queueNumber . ' <br>Order: ' . $orderNumber;
     }
 
-    return '#' . $queueNumber . ' - ' . ucfirst($displayStatus);
+    return '#' . $queueNumber . ' - ' . ucfirst($displayStatus) . ' <br>Order: ' . $orderNumber;
 }
 
 function getQueueInfoHtml($userQueue) {
@@ -592,20 +621,11 @@ function getQueueInfoHtml($userQueue) {
     if ($orderStatus === 'Ready') {
         $messageClass = 'ready-message';
         if ($orderType === 'Pickup') {
-            $message = 'Your order is READY for pickup! Please proceed to the counter.';
+            $message = '<strong>Your order is READY for pickup!</strong> Please proceed to the counter.';
         } elseif ($orderType === 'Dine In') {
-            $message = 'Your order is READY! Please proceed to your table.';
+            $message = '<strong>Your order is READY!</strong> Please proceed to your table.';
         } elseif ($orderType === 'Delivery') {
-            $message = 'Your order is READY! Our delivery driver will be with you shortly.';
-        }
-    } elseif ($orderStatus === 'Completed') {
-        $messageClass = 'completed-message';
-        if ($orderType === 'Pickup') {
-            $message = '<strong>Order completed!</strong> Thank you for picking up your order.';
-        } elseif ($orderType === 'Dine In') {
-            $message = '<strong>Order completed!</strong> Thank you for dining with us.';
-        } elseif ($orderType === 'Delivery') {
-            $message = '<strong>Order completed!</strong> Thank you for choosing our delivery service.';
+            $message = '<strong>Your order is READY!</strong> Our delivery driver will be with you shortly.';
         }
     } elseif ($orderStatus === 'Cancelled') {
         $messageClass = 'cancelled-message';

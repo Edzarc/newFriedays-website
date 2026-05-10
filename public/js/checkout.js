@@ -142,7 +142,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function updatePaymentMethods(orderType) {
+        const cashInput = document.querySelector('input[name="payment_method"]:not([value="GCash"])');
+        const cashLabel = cashInput ? cashInput.parentElement : null;
+        if (cashLabel) {
+            if (orderType === 'Delivery') {
+                cashInput.value = 'Cash on Delivery';
+                cashLabel.childNodes[1].textContent = ' Cash on Delivery';
+            } else {
+                cashInput.value = 'Cash';
+                cashLabel.childNodes[1].textContent = ' Cash';
+            }
+        }
+    }
+
     updateDeliveryAddressField(initialOrderType);
+    updatePaymentMethods(initialOrderType);
 
     // Add event listeners to order type radio buttons
     const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
@@ -150,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             updatePriceSummary(this.value);
             updateDeliveryAddressField(this.value);
+            updatePaymentMethods(this.value);
         });
     });
 

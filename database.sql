@@ -73,7 +73,7 @@ CREATE TABLE orders (
   user_id int NOT NULL,f
   order_number varchar(20) NOT NULL,
   order_type enum('Pickup','Dine In','Delivery') NOT NULL,
-  payment_method enum('Cash on Delivery','GCash') NOT NULL,
+  payment_method enum('Cash','Cash on Delivery','GCash') NOT NULL,
   status enum('Pending','Preparing','Ready','Completed','Cancelled') DEFAULT 'Pending',
   payment_status enum('Pending','Paid','Failed','Cancelled') DEFAULT 'Pending',
   paymongo_payment_id varchar(255) DEFAULT NULL,

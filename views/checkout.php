@@ -58,7 +58,7 @@
                                 <div class="choice-block">
                                     <h4>Payment Method</h4>
                                     <div class="radio-grid">
-                                        <label class="radio-pill"><input type="radio" name="payment_method" value="Cash on Delivery" required> Cash on Delivery</label>
+                                        <label class="radio-pill"><input type="radio" name="payment_method" value="Cash" required> Cash</label>
                                         <label class="radio-pill"><input type="radio" name="payment_method" value="GCash" required> GCash</label>
                                     </div>
                                 </div>

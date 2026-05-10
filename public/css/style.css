@@ -745,7 +745,7 @@ header {
 
 /* Queue */
 .queue-container {
-    max-width: 600px;
+    display: fit-content;
     margin: 2rem auto;
     text-align: center;
 }
@@ -759,6 +759,7 @@ header {
 
 .current-serving,
 .your-position {
+    
     background: var(--clr-surface);
     padding: 2rem;
     border-radius: var(--border-radius);
