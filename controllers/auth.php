@@ -90,6 +90,92 @@ function login() {
     }
 }
 
+function forgotPassword() {
+    $errors = [];
+    $message = '';
+    $showOtpForm = false;
+    $email = '';
+    $resetToken = '';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $action = $_POST['action'] ?? 'send_otp';
+
+        if ($action === 'send_otp') {
+            $email = sanitizeInput($_POST['email'] ?? '');
+
+            if (empty($email)) {
+                $errors[] = 'Please enter your email address.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Please enter a valid email address.';
+            } else {
+                $user = getUserByEmail($email);
+
+                if ($user) {
+                    $token = createPasswordResetToken($user['id']);
+                    if (sendPasswordResetOtp($email, $user['name'], $token['otp'])) {
+                        $message = 'An OTP has been sent. Please check your inbox.';
+                        $showOtpForm = true;
+                        $resetToken = $token['token'];
+                    } else {
+                        $errors[] = 'Unable to send the password reset code. Please try again later.';
+                    }
+                } else {
+                    $message = 'An OTP has been sent. Please check your inbox.';
+                }
+            }
+        } elseif ($action === 'reset_password') {
+            $resetToken = $_POST['reset_token'] ?? '';
+            $otp = sanitizeInput($_POST['otp'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+
+            if (empty($resetToken)) {
+                $errors[] = 'Password reset token is missing.';
+            }
+            if (empty($otp)) {
+                $errors[] = 'Please enter the OTP sent to your email.';
+            }
+            if (empty($password)) {
+                $errors[] = 'Please choose a new password.';
+            }
+            if (strlen($password) < 6) {
+                $errors[] = 'Password must be at least 6 characters long.';
+            }
+            if ($password !== $confirmPassword) {
+                $errors[] = 'Passwords do not match.';
+            }
+
+            if (empty($errors)) {
+                $record = getPasswordResetRecord($resetToken);
+                if (!$record) {
+                    $errors[] = 'Invalid or expired reset request.';
+                } elseif (!empty($record['used_at'])) {
+                    $errors[] = 'This password reset request has already been used.';
+                } elseif (strtotime($record['expires_at']) < time()) {
+                    $errors[] = 'This password reset code has expired. Please request a new one.';
+                } elseif ($record['otp'] !== $otp) {
+                    $errors[] = 'The OTP code is incorrect. Please try again.';
+                    $showOtpForm = true;
+                    $resetToken = $resetToken;
+                } else {
+                    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+                    if (updateUserPassword($record['user_id'], $passwordHash) && markPasswordResetTokenUsed($record['id'])) {
+                        $message = 'Your password has been updated successfully. You may now log in.';
+                    } else {
+                        $errors[] = 'Unable to update your password at this time. Please try again later.';
+                        $showOtpForm = true;
+                        $resetToken = $resetToken;
+                    }
+                }
+            } else {
+                $showOtpForm = true;
+            }
+        }
+    }
+
+    include 'views/forgot_password.php';
+}
+
 function logout() {
     session_destroy();
     header('Location: index.php?clear_cart=1');

@@ -144,6 +144,57 @@ function sendVerificationEmail($email, $name, $token) {
     return sendEmail($email, $subject, $htmlBody, $plainTextBody);
 }
 
+function createPasswordResetToken($userId) {
+    global $pdo;
+    $token = bin2hex(random_bytes(32));
+    $otp = str_pad((string) mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+    $stmt = $pdo->prepare("INSERT INTO password_reset_tokens (user_id, token, otp, expires_at) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$userId, $token, $otp, $expiresAt]);
+
+    return [
+        'token' => $token,
+        'otp' => $otp,
+    ];
+}
+
+function getPasswordResetRecord($token) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT prt.*, u.email, u.name FROM password_reset_tokens prt JOIN users u ON prt.user_id = u.id WHERE prt.token = ? LIMIT 1");
+    $stmt->execute([$token]);
+    return $stmt->fetch();
+}
+
+function markPasswordResetTokenUsed($tokenId) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE password_reset_tokens SET used_at = NOW() WHERE id = ?");
+    return $stmt->execute([$tokenId]);
+}
+
+function sendPasswordResetOtp($email, $name, $otp) {
+    $subject = 'Your Friedays password reset code';
+    $htmlBody = "<p>Hi " . htmlspecialchars($name) . ",</p>" .
+        "<p>We received a request to reset your password. Use the code below to verify your identity and choose a new password:</p>" .
+        "<p style=\"font-size:18px;font-weight:bold;letter-spacing:2px;\">{$otp}</p>" .
+        "<p>This code will expire in one hour.</p>" .
+        "<p>If you did not request a password reset, please ignore this email.</p>";
+
+    $plainTextBody = "Hi {$name},\n\n" .
+        "We received a request to reset your password. Use the code below to verify your identity and choose a new password:\n\n" .
+        "{$otp}\n\n" .
+        "This code will expire in one hour.\n\n" .
+        "If you did not request a password reset, please ignore this email.\n";
+
+    return sendEmail($email, $subject, $htmlBody, $plainTextBody);
+}
+
+function updateUserPassword($userId, $passwordHash) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?");
+    return $stmt->execute([$passwordHash, $userId]);
+}
+
 function canResendVerificationEmail($userId) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT last_verification_email_sent FROM users WHERE id = ?");

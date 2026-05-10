@@ -43,18 +43,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 const totalRevenueEl = document.getElementById('total-revenue');
                 const totalUsersEl = document.getElementById('total-users');
                 const pendingOrdersEl = document.getElementById('pending-orders');
+                const todayOrdersEl = document.getElementById('today-orders');
+                const todayRevenueEl = document.getElementById('today-revenue');
+                const todayUsersEl = document.getElementById('today-users');
+                const todayPendingOrdersEl = document.getElementById('today-pending-orders');
                 
                 console.log('Elements found:', {
                     totalOrders: !!totalOrdersEl,
                     totalRevenue: !!totalRevenueEl,
                     totalUsers: !!totalUsersEl,
-                    pendingOrders: !!pendingOrdersEl
+                    pendingOrders: !!pendingOrdersEl,
+                    todayOrders: !!todayOrdersEl,
+                    todayRevenue: !!todayRevenueEl,
+                    todayUsers: !!todayUsersEl,
+                    todayPendingOrders: !!todayPendingOrdersEl
                 });
                 
                 if (totalOrdersEl) totalOrdersEl.textContent = data.total_orders;
                 if (totalRevenueEl) totalRevenueEl.textContent = formatCurrency(data.total_revenue);
                 if (totalUsersEl) totalUsersEl.textContent = data.total_users;
                 if (pendingOrdersEl) pendingOrdersEl.textContent = data.pending_orders;
+                if (todayOrdersEl) todayOrdersEl.textContent = data.today_orders;
+                if (todayRevenueEl) todayRevenueEl.textContent = formatCurrency(data.today_revenue);
+                if (todayUsersEl) todayUsersEl.textContent = data.today_users;
+                if (todayPendingOrdersEl) todayPendingOrdersEl.textContent = data.today_pending_orders;
                 
                 const servingEl = document.getElementById('admin-current-serving');
                 if (servingEl) {

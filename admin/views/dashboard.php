@@ -7,7 +7,7 @@
 
                 <div class="dashboard-grid">
                     <div class="dashboard-card">
-                        <h3>Quick Stats</h3>
+                        <h3>Overall Quick Stats</h3>
                         <div class="stats-grid">
                             <div class="stat-item">
                                 <span class="stat-number" id="total-orders">0</span>
@@ -24,6 +24,28 @@
                             <div class="stat-item">
                                 <span class="stat-number" id="pending-orders">0</span>
                                 <span class="stat-label">Pending Orders</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3>Today's Quick Stats</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-number" id="today-orders">0</span>
+                                <span class="stat-label">Today's Orders</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="today-revenue">₱0.00</span>
+                                <span class="stat-label">Today's Revenue</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="today-users">0</span>
+                                <span class="stat-label">New Users Today</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="today-pending-orders">0</span>
+                                <span class="stat-label">Pending Orders Today</span>
                             </div>
                         </div>
                     </div>

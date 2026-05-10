@@ -24,6 +24,10 @@ switch ($page) {
         require_once 'controllers/auth.php';
         resendVerification();
         break;
+    case 'forgot_password':
+        require_once 'controllers/auth.php';
+        forgotPassword();
+        break;
     case 'menu':
         require_once 'controllers/menu.php';
         showMenu();

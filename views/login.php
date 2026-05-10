@@ -22,7 +22,8 @@
                         <button type="submit" class="btn btn-primary">Login</button>
                     </div>
                 </form>
-                <p>Don't have an account? <a href="index.php?page=register">Register here</a></p>
+                <p><a href="index.php?page=forgot_password">Forgot your password?</a></p>
+                <p></p>Don't have an account? <a href="index.php?page=register">Register here</a></p>
             </div>
         </div>
     </main>
