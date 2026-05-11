@@ -576,9 +576,10 @@ function getOrderById($orderId) {
 function getOrderItems($orderId) {
     global $pdo;
     $stmt = $pdo->prepare("
-        SELECT oi.*, p.name, p.category
+        SELECT oi.*, p.name, c.name as category
         FROM order_items oi
         JOIN products p ON oi.product_id = p.id
+        JOIN categories c ON p.category_id = c.id
         WHERE oi.order_id = ?
     ");
     $stmt->execute([$orderId]);
