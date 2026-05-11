@@ -16,17 +16,17 @@ try {
         case 'POST':
             // Add new product
             $name = trim($data['name'] ?? '');
-            $category = $data['category'] ?? '';
+            $categoryId = intval($data['category_id'] ?? 0);
             $price = floatval($data['price'] ?? 0);
             $description = trim($data['description'] ?? '');
             $imageUrl = trim($data['image_url'] ?? '');
 
-            if (empty($name) || empty($category) || $price <= 0) {
+            if (empty($name) || !$categoryId || $price <= 0) {
                 echo json_encode(['success' => false, 'message' => 'Invalid product data']);
                 exit();
             }
 
-            $productId = addProduct($name, $category, $price, $description, $imageUrl ?: null);
+            $productId = addProduct($name, $categoryId, $price, $description, $imageUrl ?: null);
             echo json_encode(['success' => true, 'message' => 'Product added successfully', 'product_id' => $productId]);
             break;
 
@@ -50,17 +50,17 @@ try {
             } else {
                 // Regular product update
                 $name = trim($data['name'] ?? '');
-                $category = $data['category'] ?? '';
+                $categoryId = intval($data['category_id'] ?? 0);
                 $price = floatval($data['price'] ?? 0);
                 $description = trim($data['description'] ?? '');
                 $imageUrl = trim($data['image_url'] ?? '');
 
-                if (!$productId || empty($name) || empty($category) || $price <= 0) {
+                if (!$productId || empty($name) || !$categoryId || $price <= 0) {
                     echo json_encode(['success' => false, 'message' => 'Invalid product data']);
                     exit();
                 }
 
-                $success = updateProduct($productId, $name, $category, $price, $description, $imageUrl ?: null);
+                $success = updateProduct($productId, $name, $categoryId, $price, $description, $imageUrl ?: null);
                 if ($success) {
                     echo json_encode(['success' => true, 'message' => 'Product updated successfully']);
                 } else {

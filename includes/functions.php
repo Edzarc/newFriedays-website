@@ -300,26 +300,63 @@ function updateLoyaltyTier($userId) {
     }
 }
 
+// Category management functions
+function getAllCategories() {
+    global $pdo;
+    $stmt = $pdo->query("SELECT * FROM categories ORDER BY name");
+    return $stmt->fetchAll();
+}
+
+function getCategoryById($categoryId) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ?");
+    $stmt->execute([$categoryId]);
+    return $stmt->fetch();
+}
+
+function addCategory($name) {
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO categories (name) VALUES (?)");
+    $stmt->execute([$name]);
+    return $pdo->lastInsertId();
+}
+
+function deleteCategory($categoryId) {
+    global $pdo;
+    // Check if category is in use
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM products WHERE category_id = ?");
+    $stmt->execute([$categoryId]);
+    $result = $stmt->fetch();
+    
+    if ($result['count'] > 0) {
+        return false; // Category is in use, cannot delete
+    }
+    
+    $stmt = $pdo->prepare("DELETE FROM categories WHERE id = ?");
+    $stmt->execute([$categoryId]);
+    return $stmt->rowCount() > 0;
+}
+
 // Product functions
 function getAllProducts($availableOnly = false) {
     global $pdo;
-    $query = "SELECT * FROM products";
+    $query = "SELECT p.*, c.name as category FROM products p LEFT JOIN categories c ON p.category_id = c.id";
     if ($availableOnly) {
-        $query .= " WHERE is_available = 1";
+        $query .= " WHERE p.is_available = 1";
     }
-    $query .= " ORDER BY category, name";
+    $query .= " ORDER BY c.name, p.name";
     $stmt = $pdo->query($query);
     return $stmt->fetchAll();
 }
 
-function getProductsByCategory($category, $availableOnly = false) {
+function getProductsByCategory($categoryId, $availableOnly = false) {
     global $pdo;
-    $query = "SELECT * FROM products WHERE category = ?";
-    $params = [$category];
+    $query = "SELECT p.*, c.name as category FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.category_id = ?";
+    $params = [$categoryId];
     if ($availableOnly) {
-        $query .= " AND is_available = 1";
+        $query .= " AND p.is_available = 1";
     }
-    $query .= " ORDER BY name";
+    $query .= " ORDER BY p.name";
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     return $stmt->fetchAll();
@@ -327,23 +364,23 @@ function getProductsByCategory($category, $availableOnly = false) {
 
 function getProductById($productId) {
     global $pdo;
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT p.*, c.name as category FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?");
     $stmt->execute([$productId]);
     return $stmt->fetch();
 }
 
 // Product management functions for admin
-function addProduct($name, $category, $price, $description, $imageUrl = null) {
+function addProduct($name, $categoryId, $price, $description, $imageUrl = null) {
     global $pdo;
-    $stmt = $pdo->prepare("INSERT INTO products (name, category, price, description, image_url) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$name, $category, $price, $description, $imageUrl]);
+    $stmt = $pdo->prepare("INSERT INTO products (name, category_id, price, description, image_url) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$name, $categoryId, $price, $description, $imageUrl]);
     return $pdo->lastInsertId();
 }
 
-function updateProduct($productId, $name, $category, $price, $description, $imageUrl = null) {
+function updateProduct($productId, $name, $categoryId, $price, $description, $imageUrl = null) {
     global $pdo;
-    $stmt = $pdo->prepare("UPDATE products SET name = ?, category = ?, price = ?, description = ?, image_url = ? WHERE id = ?");
-    $stmt->execute([$name, $category, $price, $description, $imageUrl, $productId]);
+    $stmt = $pdo->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, description = ?, image_url = ? WHERE id = ?");
+    $stmt->execute([$name, $categoryId, $price, $description, $imageUrl, $productId]);
     return $stmt->rowCount() > 0;
 }
 
