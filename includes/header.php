@@ -12,7 +12,12 @@
         <nav>
             <div class="nav-container">
                 <h1 class="logo"><?php echo (isset($_GET['page']) && strpos($_GET['page'], 'admin') === 0) ? 'Friedays Bocaue - Admin' : 'Friedays Bocaue'; ?></h1>
-                <ul class="nav-menu">
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu" id="nav-menu">
                     <?php if (isset($_GET['page']) && strpos($_GET['page'], 'admin') === 0): ?>
                         <li><a href="index.php">Home</a></li>
                         <li><a href="index.php?page=menu">Menu</a></li>
@@ -43,3 +48,6 @@
             </div>
         </nav>
     </header>
+    <button class="floating-cart-btn" id="floating-cart-btn" aria-label="Toggle shopping cart">
+        🛒<span class="floating-cart-badge" id="floating-cart-count">0</span>
+    </button>
