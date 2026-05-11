@@ -58,19 +58,7 @@
                     </div>
                 </div>
 
-                <div class="dashboard-card">
-                    <h3>Queue Management</h3>
-                    <div class="queue-management">
-                        <div class="current-serving-admin">
-                            <h4>Now Serving</h4>
-                            <div class="serving-display" id="admin-current-serving">No orders being served</div>
-                        </div>
-                        <div class="queue-actions">
-                            <button class="btn btn-secondary" id="next-order-btn">Serve Next Order</button>
-                            <button class="btn btn-primary" id="refresh-queue-btn">Refresh Queue</button>
-                        </div>
-                    </div>
-                </div>
+
             </div>
         </div>
     </main>

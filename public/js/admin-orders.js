@@ -52,8 +52,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function exportOrders(format) {
-        const url = `api/admin_export_orders.php?format=${format}`;
         const filters = new URLSearchParams(window.location.search);
-        window.open(url + '&' + filters.toString(), '_blank');
+        if (format === 'pdf') {
+            filters.set('page', 'admin_orders_report');
+            window.open('index.php?' + filters.toString(), '_blank');
+        } else {
+            const url = `api/admin_export_orders.php?format=${format}`;
+            window.open(url + '&' + filters.toString(), '_blank');
+        }
     }
 });

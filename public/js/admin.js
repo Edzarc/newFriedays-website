@@ -11,21 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Calling loadDashboardStats');
     loadDashboardStats();
 
-    // Queue management
-    const nextOrderBtn = document.getElementById('next-order-btn');
-    const refreshQueueBtn = document.getElementById('refresh-queue-btn');
-    
-    console.log('Next order button found:', !!nextOrderBtn);
-    console.log('Refresh queue button found:', !!refreshQueueBtn);
-
-    if (nextOrderBtn) {
-        nextOrderBtn.addEventListener('click', serveNextOrder);
-    }
-
-    if (refreshQueueBtn) {
-        refreshQueueBtn.addEventListener('click', loadDashboardStats);
-    }
-
     function loadDashboardStats() {
         console.log('loadDashboardStats called');
         const url = 'api/admin_stats.php';
@@ -67,12 +52,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (todayRevenueEl) todayRevenueEl.textContent = formatCurrency(data.today_revenue);
                 if (todayUsersEl) todayUsersEl.textContent = data.today_users;
                 if (todayPendingOrdersEl) todayPendingOrdersEl.textContent = data.today_pending_orders;
-                
-                const servingEl = document.getElementById('admin-current-serving');
-                if (servingEl) {
-                    servingEl.textContent = data.current_serving ?
-                        `Customer #${data.current_serving.queue_number}` : 'No orders being served';
-                }
 
                 // Load recent orders
                 console.log('Calling loadRecentOrders');
@@ -120,25 +99,4 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading recent orders:', error));
     }
 
-    function serveNextOrder() {
-        console.log('serveNextOrder called');
-        const url = 'api/admin_serve_next.php';
-        console.log('Fetching from:', url);
-        
-        fetch(url, { method: 'POST' })
-            .then(response => {
-                console.log('Response received, status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Serve next order response:', data);
-                if (data.success) {
-                    showAlert('Next order served successfully!');
-                    loadDashboardStats();
-                } else {
-                    showAlert('No orders waiting to be served.');
-                }
-            })
-            .catch(error => console.error('Error serving next order:', error));
-    }
 });

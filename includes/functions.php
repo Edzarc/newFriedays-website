@@ -871,11 +871,22 @@ function getAnalyticsData($dateFrom = null, $dateTo = null) {
     $stmt->execute($params);
     $topProducts = $stmt->fetchAll();
 
+    // Order type counts for chart labels and report display
+    $stmt = $pdo->prepare("
+        SELECT order_type, COUNT(*) as count
+        FROM orders
+        $orderDateCondition
+        GROUP BY order_type
+    ");
+    $stmt->execute($params);
+    $orderTypeCounts = $stmt->fetchAll();
+
     return [
         'total_revenue' => $revenue,
         'order_count' => $orderCount,
         'avg_order_value' => $avgOrderValue,
-        'top_products' => $topProducts  
+        'top_products' => $topProducts,
+        'order_type_counts' => $orderTypeCounts
     ];
 }
 

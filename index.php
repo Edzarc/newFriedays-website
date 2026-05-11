@@ -60,9 +60,17 @@ switch ($page) {
         require_once 'admin/controllers/orders.php';
         showOrders();
         break;
+    case 'admin_orders_report':
+        require_once 'admin/controllers/orders_report.php';
+        showOrdersReport();
+        break;
     case 'admin_analytics':
         require_once 'admin/controllers/analytics.php';
         showAnalytics();
+        break;
+    case 'admin_analytics_report':
+        require_once 'admin/controllers/analytics_report.php';
+        showAnalyticsReport();
         break;
     case 'admin_products':
         require_once 'admin/controllers/products.php';

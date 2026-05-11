@@ -63,17 +63,17 @@ CREATE TABLE categories (
 );
 
 -- Products table
-    CREATE TABLE products (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        category_id INT NOT NULL,
-        price DECIMAL(8,2) NOT NULL,
-        description TEXT,
-        image_url VARCHAR(1024) DEFAULT NULL,
-        is_available BOOLEAN DEFAULT 1,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (category_id) REFERENCES categories(id)
-    );
+        CREATE TABLE products (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            category_id INT NOT NULL,
+            price DECIMAL(8,2) NOT NULL,
+            description TEXT,
+            image_url VARCHAR(1024) DEFAULT NULL,
+            is_available BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (category_id) REFERENCES categories(id)
+        );
 
 -- Orders table
 CREATE TABLE orders (

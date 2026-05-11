@@ -91,8 +91,18 @@ document.addEventListener('DOMContentLoaded', function() {
     function exportAnalytics(format) {
         const dateFrom = document.getElementById('date_from').value;
         const dateTo = document.getElementById('date_to').value;
-        const url = `api/admin_export_analytics.php?format=${format}&date_from=${dateFrom}&date_to=${dateTo}`;
-        window.open(url, '_blank');
+
+        if (format === 'pdf') {
+            const params = new URLSearchParams({
+                page: 'admin_analytics_report',
+                date_from: dateFrom,
+                date_to: dateTo
+            });
+            window.open('index.php?' + params.toString(), '_blank');
+        } else {
+            const url = `api/admin_export_analytics.php?format=${format}&date_from=${dateFrom}&date_to=${dateTo}`;
+            window.open(url, '_blank');
+        }
     }
 
     // Reload charts when date filters change
