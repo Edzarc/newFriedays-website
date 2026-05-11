@@ -7,7 +7,7 @@
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="public/css/style.css">
 </head>
-<body>
+<body class="page-<?php echo isset($_GET['page']) && $_GET['page'] !== '' ? htmlspecialchars($_GET['page']) : 'home'; ?>">
     <header>
         <nav>
             <div class="nav-container">

@@ -492,6 +492,43 @@ function sendOrderReadyEmail($orderId) {
     return sendEmail($user['email'], $subject, $htmlBody);
 }
 
+function sendOrderCancelledEmail($orderId) {
+    $order = getOrderById($orderId);
+    if (!$order) {
+        return false;
+    }
+
+    $user = getUserById($order['user_id']);
+    if (!$user || !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $orderItems = getOrderItems($orderId);
+    $cancelMessage = '';
+    if ($order['order_type'] === 'Delivery') {
+        $cancelMessage = '<p>Your delivery order has been cancelled. If any payment was processed, our team will follow up with you.</p>';
+    } elseif ($order['order_type'] === 'Pickup') {
+        $cancelMessage = '<p>Your pickup order has been cancelled. If any payment was processed, our team will follow up with you.</p>';
+    } elseif ($order['order_type'] === 'Dine In') {
+        $cancelMessage = '<p>Your dine-in order has been cancelled. If you need further assistance, please contact our staff.</p>';
+    }
+
+    $subject = 'Your Friedays Order Has Been Cancelled - ' . htmlspecialchars($order['order_number']);
+    $htmlBody = '<p>Hi ' . htmlspecialchars($user['name']) . ',</p>' .
+        '<p>Your order has been <strong>cancelled</strong>.</p>' .
+        '<p><strong>Order Number:</strong> ' . htmlspecialchars($order['order_number']) . '<br>' .
+        '<strong>Order Type:</strong> ' . htmlspecialchars($order['order_type']) . '<br>' .
+        '<strong>Payment Method:</strong> ' . htmlspecialchars($order['payment_method']) . '<br>' .
+        '<strong>Order Status:</strong> ' . htmlspecialchars($order['status']) . '</p>' .
+        $cancelMessage .
+        buildOrderItemsTableHtml($orderItems) .
+        '<p><strong>Total:</strong> ' . formatCurrency($order['total_amount']) . '</p>' .
+        '<p>If you have any questions, reply to this email or contact our support.</p>' .
+        '<p>Thank you for choosing Friedays Bocaue!</p>';
+
+    return sendEmail($user['email'], $subject, $htmlBody);
+}
+
 function getOrderById($orderId) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ?");
@@ -566,7 +603,7 @@ function getUserQueuePosition($userId) {
         SELECT q.queue_number, q.status, o.status as order_status, o.order_type, o.order_number
         FROM queue q
         JOIN orders o ON q.order_id = o.id
-        WHERE o.user_id = ? AND q.status IN ('Waiting', 'Serving')
+        WHERE o.user_id = ? AND q.status IN ('Waiting', 'Serving') AND o.status NOT IN ('Completed', 'Cancelled')
         ORDER BY q.queue_number ASC LIMIT 1
     ");
     $stmt->execute([$userId]);
@@ -576,16 +613,7 @@ function getUserQueuePosition($userId) {
         return $activeOrder;
     }
 
-    // Finally, check for cancelled orders
-    $stmt = $pdo->prepare("
-        SELECT q.queue_number, q.status, o.status as order_status, o.order_type, o.order_number
-        FROM queue q
-        JOIN orders o ON q.order_id = o.id
-        WHERE o.user_id = ? AND o.status = 'Cancelled'
-        ORDER BY q.created_at DESC LIMIT 1
-    ");
-    $stmt->execute([$userId]);
-    return $stmt->fetch();
+    return null;
 }
 
 function getQueuePositionHtml($userQueue) {
@@ -595,7 +623,10 @@ function getQueuePositionHtml($userQueue) {
 
     $queueNumber = intval($userQueue['queue_number']);
     $orderNumber = htmlspecialchars($userQueue['order_number']);
-    $displayStatus = $userQueue['order_status'] ?? $userQueue['status'];
+    $displayStatus = $userQueue['status'];
+    if (isset($userQueue['order_status']) && in_array($userQueue['order_status'], ['Ready', 'Cancelled'], true)) {
+        $displayStatus = $userQueue['order_status'];
+    }
 
     if ($displayStatus === 'Ready') {
         return '<span class="ready-badge">✓</span> Your order is READY! #' . $queueNumber . ' <br>Order: ' . $orderNumber;
@@ -613,7 +644,10 @@ function getQueueInfoHtml($userQueue) {
         return '<p>No active orders found.</p><p><strong>Note:</strong> Queue updates automatically every 5 seconds.</p>';
     }
 
-    $orderStatus = $userQueue['order_status'] ?? $userQueue['status'];
+    $orderStatus = $userQueue['status'];
+    if (isset($userQueue['order_status']) && in_array($userQueue['order_status'], ['Ready', 'Cancelled'], true)) {
+        $orderStatus = $userQueue['order_status'];
+    }
     $orderType = $userQueue['order_type'] ?? 'Pickup';
     $messageClass = '';
     $message = '';
@@ -657,6 +691,13 @@ function updateOrderStatus($orderId, $status) {
         $stmt = $pdo->prepare("UPDATE queue SET status = 'Serving' WHERE order_id = ?");
         $stmt->execute([$orderId]);
         sendOrderReadyEmail($orderId);
+    }
+
+    if ($success && $status === 'Cancelled' && $order && $order['status'] !== 'Cancelled') {
+        // Remove cancelled orders from the active queue display
+        $stmt = $pdo->prepare("UPDATE queue SET status = 'Cancelled' WHERE order_id = ?");
+        $stmt->execute([$orderId]);
+        sendOrderCancelledEmail($orderId);
     }
 
     return $success;
