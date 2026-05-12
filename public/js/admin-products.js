@@ -5,10 +5,18 @@ function showAlert(message, type = 'info') {
     alert(message);
 }
 
+// Store categories globally
+let categoriesList = [];
+
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('product-modal');
+    const categoryModal = document.getElementById('category-modal');
+    const manageCategoriesModal = document.getElementById('manage-categories-modal');
     const form = document.getElementById('product-form');
+    const categoryForm = document.getElementById('category-form');
     const searchInput = document.getElementById('product-search');
+
+    loadCategories();
 
     // Product search functionality
     if (searchInput) {
@@ -28,6 +36,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add product button
     document.getElementById('add-product-btn').addEventListener('click', function() {
         openModal();
+    });
+
+    // Manage categories button
+    document.getElementById('manage-categories-btn').addEventListener('click', function() {
+        loadCategoriesForManagement();
+        manageCategoriesModal.style.display = 'block';
+    });
+
+    // Add new category button in product form
+    document.getElementById('add-new-category-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('category-modal-title').textContent = 'New Category';
+        categoryModal.style.display = 'block';
     });
 
     // Toggle availability buttons
@@ -58,11 +79,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Modal close button
+    // Modal close buttons
     document.querySelector('.close').addEventListener('click', closeModal);
+    document.querySelector('.category-close').addEventListener('click', closeCategoryModal);
+    document.querySelector('.manage-categories-close').addEventListener('click', closeCategoriesModal);
 
-    // Cancel button
+    // Cancel buttons
     document.getElementById('cancel-btn').addEventListener('click', closeModal);
+    document.getElementById('category-cancel-btn').addEventListener('click', closeCategoryModal);
+    document.getElementById('manage-categories-close-btn').addEventListener('click', closeCategoriesModal);
 
     // Form submission
     form.addEventListener('submit', function(e) {
@@ -70,24 +95,101 @@ document.addEventListener('DOMContentLoaded', function() {
         saveProduct();
     });
 
-    // Close modal when clicking outside
+    // Category form submission
+    categoryForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveNewCategory();
+    });
+
+    // Close modals when clicking outside
     window.addEventListener('click', function(e) {
         if (e.target === modal) {
             closeModal();
         }
+        if (e.target === categoryModal) {
+            closeCategoryModal();
+        }
+        if (e.target === manageCategoriesModal) {
+            closeCategoriesModal();
+        }
     });
 });
+
+async function loadCategories() {
+    try {
+        const response = await fetch('api/admin_categories.php');
+        const result = await response.json();
+
+        if (result.success) {
+            categoriesList = result.categories;
+            updateCategoryDropdown();
+        } else {
+            console.error('Failed to load categories');
+        }
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
+}
+
+function updateCategoryDropdown() {
+    const categorySelect = document.getElementById('product-category');
+    const currentValue = categorySelect.value;
+
+    while (categorySelect.options.length > 1) {
+        categorySelect.remove(1);
+    }
+
+    categoriesList.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+    });
+
+    if (currentValue) {
+        categorySelect.value = currentValue;
+    }
+}
+
+function loadCategoriesForManagement() {
+    const categoriesContainer = document.getElementById('categories-list');
+    categoriesContainer.innerHTML = '';
+
+    categoriesList.forEach(category => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'category-item';
+        categoryDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee;';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = category.name;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-danger btn-sm';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', function() {
+            if (confirm(`Are you sure you want to delete the category "${category.name}"?`)) {
+                deleteCategory(category.id);
+            }
+        });
+
+        categoryDiv.appendChild(nameSpan);
+        categoryDiv.appendChild(deleteBtn);
+        categoriesContainer.appendChild(categoryDiv);
+    });
+}
 
 function openModal(product = null) {
     const modal = document.getElementById('product-modal');
     const form = document.getElementById('product-form');
     const title = document.getElementById('modal-title');
 
+    updateCategoryDropdown();
+
     if (product) {
         title.textContent = 'Edit Product';
         document.getElementById('product-id').value = product.id;
         document.getElementById('product-name').value = product.name;
-        document.getElementById('product-category').value = product.category;
+        document.getElementById('product-category').value = product.category_id || '';
         document.getElementById('product-price').value = product.price;
         document.getElementById('product-image-url').value = product.image_url || '';
         document.getElementById('product-description').value = product.description || '';
@@ -105,8 +207,16 @@ function closeModal() {
     document.getElementById('product-modal').style.display = 'none';
 }
 
+function closeCategoryModal() {
+    document.getElementById('category-modal').style.display = 'none';
+    document.getElementById('category-form').reset();
+}
+
+function closeCategoriesModal() {
+    document.getElementById('manage-categories-modal').style.display = 'none';
+}
+
 function editProduct(productId) {
-    // Get product data from the table row
     const row = document.querySelector(`tr[data-product-id="${productId}"]`);
     if (!row) return;
 
@@ -120,6 +230,11 @@ function editProduct(productId) {
         description: cells[5].textContent.trim()
     };
 
+    const category = categoriesList.find(c => c.name === product.category);
+    if (category) {
+        product.category_id = category.id;
+    }
+
     openModal(product);
 }
 
@@ -128,11 +243,16 @@ async function saveProduct() {
     const data = {
         product_id: formData.get('product_id'),
         name: formData.get('name'),
-        category: formData.get('category'),
+        category_id: parseInt(formData.get('category_id')),
         price: parseFloat(formData.get('price')),
         image_url: formData.get('image_url'),
         description: formData.get('description')
     };
+
+    if (!data.category_id) {
+        showAlert('Please select a category');
+        return;
+    }
 
     const isEdit = data.product_id !== '';
     const method = isEdit ? 'PUT' : 'POST';
@@ -170,7 +290,6 @@ async function deleteProduct(productId) {
 
         if (result.success) {
             showAlert(result.message);
-            // Remove row from table
             const row = document.querySelector(`tr[data-product-id="${productId}"]`);
             if (row) row.remove();
         } else {
@@ -199,7 +318,6 @@ async function toggleProductAvailability(productId, isAvailable) {
 
         if (result.success) {
             showAlert(result.message);
-            // Update the button and status badge
             const row = document.querySelector(`tr[data-product-id="${productId}"]`);
             if (row) {
                 const button = row.querySelector('.toggle-availability');
@@ -223,6 +341,59 @@ async function toggleProductAvailability(productId, isAvailable) {
             showAlert('Error: ' + result.message);
         }
     } catch (error) {
-        showAlert('Error updating product availability: ' + error.message);
+            showAlert('Error updating product availability: ' + error.message);
+        }
+}
+
+async function saveNewCategory() {
+    const categoryName = document.getElementById('category-name').value.trim();
+
+    if (!categoryName) {
+        showAlert('Please enter a category name');
+        return;
+    }
+
+    try {
+        const response = await fetch('api/admin_categories.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: categoryName })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showAlert('Category added successfully');
+            closeCategoryModal();
+            await loadCategories();
+            updateCategoryDropdown();
+        } else {
+            showAlert('Error: ' + result.message);
+        }
+    } catch (error) {
+        showAlert('Error adding category: ' + error.message);
     }
 }
+
+async function deleteCategory(categoryId) {
+    try {
+        const response = await fetch(`api/admin_categories.php?id=${categoryId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showAlert('Category deleted successfully');
+            await loadCategories();
+            loadCategoriesForManagement();
+        } else {
+            showAlert('Error: ' + result.message);
+        }
+    } catch (error) {
+        showAlert('Error deleting category: ' + error.message);
+    }
+}
+

@@ -55,6 +55,167 @@ function getUserByEmail($email) {
     return $stmt->fetch();
 }
 
+function createEmailVerificationToken($userId) {
+    global $pdo;
+    $token = bin2hex(random_bytes(32));
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+1 day'));
+    $stmt = $pdo->prepare("INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)");
+    $stmt->execute([$userId, $token, $expiresAt]);
+    return $token;
+}
+
+function getEmailVerificationRecord($token) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT evt.*, u.email_verified FROM email_verification_tokens evt JOIN users u ON evt.user_id = u.id WHERE evt.token = ? LIMIT 1");
+    $stmt->execute([$token]);
+    return $stmt->fetch();
+}
+
+function markEmailVerified($tokenId, $userId) {
+    global $pdo;
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET email_verified = 1, updated_at = NOW() WHERE id = ?");
+        $stmt->execute([$userId]);
+
+        $stmt = $pdo->prepare("UPDATE email_verification_tokens SET used_at = NOW() WHERE id = ?");
+        $stmt->execute([$tokenId]);
+
+        $pdo->commit();
+        return true;
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        return false;
+    }
+}
+
+function sendEmail($to, $subject, $htmlBody, $plainTextBody = '') {
+    require_once __DIR__ . '/../src/Exception.php';
+    require_once __DIR__ . '/../src/PHPMailer.php';
+    require_once __DIR__ . '/../src/SMTP.php';
+
+    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = SMTP_HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = SMTP_USERNAME;
+        $mail->Password = SMTP_PASSWORD;
+        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = SMTP_PORT;
+        $mail->SMTPAutoTLS = true;
+        $mail->CharSet = 'UTF-8';
+
+        $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
+        $mail->addAddress($to);
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $htmlBody;
+        $mail->AltBody = $plainTextBody ?: strip_tags($htmlBody);
+
+        return $mail->send();
+    } catch (PHPMailer\PHPMailer\Exception $exception) {
+        error_log('Email send failed: ' . $exception->getMessage());
+        return false;
+    }
+}
+
+function sendVerificationEmail($email, $name, $token) {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $basePath = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+    $verifyUrl = sprintf('%s://%s%s/index.php?page=verify_email&token=%s', $scheme, $host, $basePath, urlencode($token));
+
+    $subject = 'Verify your Friedays account';
+    $htmlBody = "<p>Hi " . htmlspecialchars($name) . ",</p>" .
+        "<p>Thank you for registering with Friedays Bocaue. Please verify your email address by clicking the button below:</p>" .
+        "<p><a href=\"{$verifyUrl}\" style=\"display:inline-block;padding:10px 18px;background:#f06c00;color:#fff;text-decoration:none;border-radius:4px;\">Verify Email</a></p>" .
+        "<p>If the button does not work, copy and paste the following link into your browser:</p>" .
+        "<p><a href=\"{$verifyUrl}\">{$verifyUrl}</a></p>" .
+        "<p>If you did not register, you can ignore this message.</p>";
+
+    $plainTextBody = "Hi {$name},\n\n" .
+        "Thank you for registering with Friedays Bocaue. Please verify your email address using the link below:\n" .
+        "{$verifyUrl}\n\n" .
+        "If you did not register, you can ignore this message.\n";
+
+    return sendEmail($email, $subject, $htmlBody, $plainTextBody);
+}
+
+function createPasswordResetToken($userId) {
+    global $pdo;
+    $token = bin2hex(random_bytes(32));
+    $otp = str_pad((string) mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+    $stmt = $pdo->prepare("INSERT INTO password_reset_tokens (user_id, token, otp, expires_at) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$userId, $token, $otp, $expiresAt]);
+
+    return [
+        'token' => $token,
+        'otp' => $otp,
+    ];
+}
+
+function getPasswordResetRecord($token) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT prt.*, u.email, u.name FROM password_reset_tokens prt JOIN users u ON prt.user_id = u.id WHERE prt.token = ? LIMIT 1");
+    $stmt->execute([$token]);
+    return $stmt->fetch();
+}
+
+function markPasswordResetTokenUsed($tokenId) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE password_reset_tokens SET used_at = NOW() WHERE id = ?");
+    return $stmt->execute([$tokenId]);
+}
+
+function sendPasswordResetOtp($email, $name, $otp) {
+    $subject = 'Your Friedays password reset code';
+    $htmlBody = "<p>Hi " . htmlspecialchars($name) . ",</p>" .
+        "<p>We received a request to reset your password. Use the code below to verify your identity and choose a new password:</p>" .
+        "<p style=\"font-size:18px;font-weight:bold;letter-spacing:2px;\">{$otp}</p>" .
+        "<p>This code will expire in one hour.</p>" .
+        "<p>If you did not request a password reset, please ignore this email.</p>";
+
+    $plainTextBody = "Hi {$name},\n\n" .
+        "We received a request to reset your password. Use the code below to verify your identity and choose a new password:\n\n" .
+        "{$otp}\n\n" .
+        "This code will expire in one hour.\n\n" .
+        "If you did not request a password reset, please ignore this email.\n";
+
+    return sendEmail($email, $subject, $htmlBody, $plainTextBody);
+}
+
+function updateUserPassword($userId, $passwordHash) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?");
+    return $stmt->execute([$passwordHash, $userId]);
+}
+
+function canResendVerificationEmail($userId) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT last_verification_email_sent FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch();
+    
+    if (!$user || !$user['last_verification_email_sent']) {
+        return true; // Never sent, so can send
+    }
+    
+    $lastSent = strtotime($user['last_verification_email_sent']);
+    $now = time();
+    return ($now - $lastSent) >= 30; // 30 seconds cooldown
+}
+
+function updateLastVerificationEmailSent($userId) {
+    global $pdo;
+    $stmt = $pdo->prepare("UPDATE users SET last_verification_email_sent = NOW() WHERE id = ?");
+    return $stmt->execute([$userId]);
+}
+
 function getUserAddresses($userId) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY created_at DESC");
@@ -139,26 +300,63 @@ function updateLoyaltyTier($userId) {
     }
 }
 
+// Category management functions
+function getAllCategories() {
+    global $pdo;
+    $stmt = $pdo->query("SELECT * FROM categories ORDER BY name");
+    return $stmt->fetchAll();
+}
+
+function getCategoryById($categoryId) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ?");
+    $stmt->execute([$categoryId]);
+    return $stmt->fetch();
+}
+
+function addCategory($name) {
+    global $pdo;
+    $stmt = $pdo->prepare("INSERT INTO categories (name) VALUES (?)");
+    $stmt->execute([$name]);
+    return $pdo->lastInsertId();
+}
+
+function deleteCategory($categoryId) {
+    global $pdo;
+    // Check if category is in use
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM products WHERE category_id = ?");
+    $stmt->execute([$categoryId]);
+    $result = $stmt->fetch();
+    
+    if ($result['count'] > 0) {
+        return false; // Category is in use, cannot delete
+    }
+    
+    $stmt = $pdo->prepare("DELETE FROM categories WHERE id = ?");
+    $stmt->execute([$categoryId]);
+    return $stmt->rowCount() > 0;
+}
+
 // Product functions
 function getAllProducts($availableOnly = false) {
     global $pdo;
-    $query = "SELECT * FROM products";
+    $query = "SELECT p.*, c.name as category FROM products p LEFT JOIN categories c ON p.category_id = c.id";
     if ($availableOnly) {
-        $query .= " WHERE is_available = 1";
+        $query .= " WHERE p.is_available = 1";
     }
-    $query .= " ORDER BY category, name";
+    $query .= " ORDER BY c.name, p.name";
     $stmt = $pdo->query($query);
     return $stmt->fetchAll();
 }
 
-function getProductsByCategory($category, $availableOnly = false) {
+function getProductsByCategory($categoryId, $availableOnly = false) {
     global $pdo;
-    $query = "SELECT * FROM products WHERE category = ?";
-    $params = [$category];
+    $query = "SELECT p.*, c.name as category FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.category_id = ?";
+    $params = [$categoryId];
     if ($availableOnly) {
-        $query .= " AND is_available = 1";
+        $query .= " AND p.is_available = 1";
     }
-    $query .= " ORDER BY name";
+    $query .= " ORDER BY p.name";
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     return $stmt->fetchAll();
@@ -166,23 +364,23 @@ function getProductsByCategory($category, $availableOnly = false) {
 
 function getProductById($productId) {
     global $pdo;
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT p.*, c.name as category FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = ?");
     $stmt->execute([$productId]);
     return $stmt->fetch();
 }
 
 // Product management functions for admin
-function addProduct($name, $category, $price, $description, $imageUrl = null) {
+function addProduct($name, $categoryId, $price, $description, $imageUrl = null) {
     global $pdo;
-    $stmt = $pdo->prepare("INSERT INTO products (name, category, price, description, image_url) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$name, $category, $price, $description, $imageUrl]);
+    $stmt = $pdo->prepare("INSERT INTO products (name, category_id, price, description, image_url) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$name, $categoryId, $price, $description, $imageUrl]);
     return $pdo->lastInsertId();
 }
 
-function updateProduct($productId, $name, $category, $price, $description, $imageUrl = null) {
+function updateProduct($productId, $name, $categoryId, $price, $description, $imageUrl = null) {
     global $pdo;
-    $stmt = $pdo->prepare("UPDATE products SET name = ?, category = ?, price = ?, description = ?, image_url = ? WHERE id = ?");
-    $stmt->execute([$name, $category, $price, $description, $imageUrl, $productId]);
+    $stmt = $pdo->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, description = ?, image_url = ? WHERE id = ?");
+    $stmt->execute([$name, $categoryId, $price, $description, $imageUrl, $productId]);
     return $stmt->rowCount() > 0;
 }
 
@@ -229,6 +427,145 @@ function createOrder($userId, $orderType, $paymentMethod, $totalAmount, $cartIte
     return $orderId;
 }
 
+function formatCurrency($amount) {
+    return '₱' . number_format((float)$amount, 2);
+}
+
+function buildOrderItemsTableHtml($orderItems) {
+    $html = '<table style="width:100%;border-collapse:collapse;margin-top:10px;">';
+    $html .= '<thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #ddd;">Item</th><th style="text-align:center;padding:8px;border-bottom:1px solid #ddd;">Qty</th><th style="text-align:right;padding:8px;border-bottom:1px solid #ddd;">Total</th></tr></thead>';
+    $html .= '<tbody>';
+
+    foreach ($orderItems as $item) {
+        $itemTotal = $item['price_at_purchase'] * $item['quantity'];
+        $html .= '<tr>' .
+            '<td style="padding:8px;border-bottom:1px solid #eee;">' . htmlspecialchars($item['name']) . '</td>' .
+            '<td style="padding:8px;border-bottom:1px solid #eee;text-align:center;">' . intval($item['quantity']) . '</td>' .
+            '<td style="padding:8px;border-bottom:1px solid #eee;text-align:right;">' . formatCurrency($itemTotal) . '</td>' .
+            '</tr>';
+    }
+
+    $html .= '</tbody></table>';
+    return $html;
+}
+
+function sendOrderConfirmationEmail($orderId) {
+    $order = getOrderById($orderId);
+    if (!$order) {
+        return false;
+    }
+
+    $user = getUserById($order['user_id']);
+    if (!$user || !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $orderItems = getOrderItems($orderId);
+    $paymentMessage = '';
+    if ($order['payment_method'] === 'GCash') {
+        $paymentMessage = $order['payment_status'] === 'Paid'
+            ? '<p>Your payment via GCash has been successfully received.</p>'
+            : '<p>Your payment via GCash is being processed. We will update you when it is confirmed.</p>';
+    } else {
+        $paymentMessage = '<p>Your order has been placed successfully. Please pay in cash when your order is ready for pickup or delivered.</p>';
+    }
+
+    $deliveryAddressSection = '';
+    if ($order['order_type'] === 'Delivery' && !empty($order['delivery_address'])) {
+        $deliveryAddressSection = '<p><strong>Delivery Address:</strong><br>' . nl2br(htmlspecialchars($order['delivery_address'])) . '</p>';
+    }
+
+    $subject = 'Friedays Order Confirmation - ' . htmlspecialchars($order['order_number']);
+    $htmlBody = '<p>Hi ' . htmlspecialchars($user['name']) . ',</p>' .
+        '<p>Thank you for your order. Here are your order details:</p>' .
+        '<p><strong>Order Number:</strong> ' . htmlspecialchars($order['order_number']) . '<br>' .
+        '<strong>Order Type:</strong> ' . htmlspecialchars($order['order_type']) . '<br>' .
+        '<strong>Payment Method:</strong> ' . htmlspecialchars($order['payment_method']) . '<br>' .
+        '<strong>Order Status:</strong> ' . htmlspecialchars($order['status']) . '</p>' .
+        $paymentMessage .
+        $deliveryAddressSection .
+        buildOrderItemsTableHtml($orderItems) .
+        '<p style="text-align:right;font-weight:bold;">Total: ' . formatCurrency($order['total_amount']) . '</p>' .
+        '<p>If you have any questions, reply to this email or contact our support.</p>' .
+        '<p>Thank you for choosing Friedays Bocaue!</p>';
+
+    return sendEmail($user['email'], $subject, $htmlBody);
+}
+
+function sendOrderReadyEmail($orderId) {
+    $order = getOrderById($orderId);
+    if (!$order) {
+        return false;
+    }
+
+    $user = getUserById($order['user_id']);
+    if (!$user || !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $orderItems = getOrderItems($orderId);
+    $deliveryMessage = '';
+    if ($order['order_type'] === 'Delivery') {
+        $deliveryMessage = '<p>Your order is ready for delivery and will be on its way shortly.</p>';
+    } elseif ($order['order_type'] === 'Pickup') {
+        $deliveryMessage = '<p>Your order is ready for pickup at the counter.</p>';
+    } elseif ($order['order_type'] === 'Dine In') {
+        $deliveryMessage = '<p>Your order is ready. Please proceed to your table or the pickup counter.</p>';
+    }
+
+    $subject = 'Your Friedays Order is Ready - ' . htmlspecialchars($order['order_number']);
+    $htmlBody = '<p>Hi ' . htmlspecialchars($user['name']) . ',</p>' .
+        '<p>Your order is now <strong>Ready</strong>.</p>' .
+        '<p><strong>Order Number:</strong> ' . htmlspecialchars($order['order_number']) . '<br>' .
+        '<strong>Order Type:</strong> ' . htmlspecialchars($order['order_type']) . '<br>' .
+        '<strong>Payment Method:</strong> ' . htmlspecialchars($order['payment_method']) . '<br>' .
+        '<strong>Order Status:</strong> ' . htmlspecialchars($order['status']) . '</p>' .
+        $deliveryMessage .
+        '<p><strong>Total:</strong> ' . formatCurrency($order['total_amount']) . '</p>' .
+        buildOrderItemsTableHtml($orderItems) .
+        '<p>If you have any questions, reply to this email or contact our support.</p>' .
+        '<p>Thank you for choosing Friedays Bocaue!</p>';
+
+    return sendEmail($user['email'], $subject, $htmlBody);
+}
+
+function sendOrderCancelledEmail($orderId) {
+    $order = getOrderById($orderId);
+    if (!$order) {
+        return false;
+    }
+
+    $user = getUserById($order['user_id']);
+    if (!$user || !filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $orderItems = getOrderItems($orderId);
+    $cancelMessage = '';
+    if ($order['order_type'] === 'Delivery') {
+        $cancelMessage = '<p>Your delivery order has been cancelled. If any payment was processed, our team will follow up with you.</p>';
+    } elseif ($order['order_type'] === 'Pickup') {
+        $cancelMessage = '<p>Your pickup order has been cancelled. If any payment was processed, our team will follow up with you.</p>';
+    } elseif ($order['order_type'] === 'Dine In') {
+        $cancelMessage = '<p>Your dine-in order has been cancelled. If you need further assistance, please contact our staff.</p>';
+    }
+
+    $subject = 'Your Friedays Order Has Been Cancelled - ' . htmlspecialchars($order['order_number']);
+    $htmlBody = '<p>Hi ' . htmlspecialchars($user['name']) . ',</p>' .
+        '<p>Your order has been <strong>cancelled</strong>.</p>' .
+        '<p><strong>Order Number:</strong> ' . htmlspecialchars($order['order_number']) . '<br>' .
+        '<strong>Order Type:</strong> ' . htmlspecialchars($order['order_type']) . '<br>' .
+        '<strong>Payment Method:</strong> ' . htmlspecialchars($order['payment_method']) . '<br>' .
+        '<strong>Order Status:</strong> ' . htmlspecialchars($order['status']) . '</p>' .
+        $cancelMessage .
+        buildOrderItemsTableHtml($orderItems) .
+        '<p><strong>Total:</strong> ' . formatCurrency($order['total_amount']) . '</p>' .
+        '<p>If you have any questions, reply to this email or contact our support.</p>' .
+        '<p>Thank you for choosing Friedays Bocaue!</p>';
+
+    return sendEmail($user['email'], $subject, $htmlBody);
+}
+
 function getOrderById($orderId) {
     global $pdo;
     $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ?");
@@ -239,9 +576,10 @@ function getOrderById($orderId) {
 function getOrderItems($orderId) {
     global $pdo;
     $stmt = $pdo->prepare("
-        SELECT oi.*, p.name, p.category
+        SELECT oi.*, p.name, c.name as category
         FROM order_items oi
         JOIN products p ON oi.product_id = p.id
+        JOIN categories c ON p.category_id = c.id
         WHERE oi.order_id = ?
     ");
     $stmt->execute([$orderId]);
@@ -282,21 +620,125 @@ function getCurrentServing() {
 
 function getUserQueuePosition($userId) {
     global $pdo;
+
+    // First, check for Ready orders (highest priority)
     $stmt = $pdo->prepare("
-        SELECT q.queue_number, q.status
+        SELECT q.queue_number, q.status, o.status as order_status, o.order_type, o.order_number
         FROM queue q
         JOIN orders o ON q.order_id = o.id
-        WHERE o.user_id = ? AND q.status IN ('Waiting', 'Serving')
-        ORDER BY q.created_at DESC LIMIT 1
+        WHERE o.user_id = ? AND o.status = 'Ready'
+        ORDER BY q.queue_number ASC LIMIT 1
     ");
     $stmt->execute([$userId]);
-    return $stmt->fetch();
+    $readyOrder = $stmt->fetch();
+
+    if ($readyOrder) {
+        return $readyOrder;
+    }
+
+    // Then, check for active queue positions (Waiting/Serving)
+    $stmt = $pdo->prepare("
+        SELECT q.queue_number, q.status, o.status as order_status, o.order_type, o.order_number
+        FROM queue q
+        JOIN orders o ON q.order_id = o.id
+        WHERE o.user_id = ? AND q.status IN ('Waiting', 'Serving') AND o.status NOT IN ('Completed', 'Cancelled')
+        ORDER BY q.queue_number ASC LIMIT 1
+    ");
+    $stmt->execute([$userId]);
+    $activeOrder = $stmt->fetch();
+
+    if ($activeOrder) {
+        return $activeOrder;
+    }
+
+    return null;
+}
+
+function getQueuePositionHtml($userQueue) {
+    if (!$userQueue) {
+        return 'No active orders';
+    }
+
+    $queueNumber = intval($userQueue['queue_number']);
+    $orderNumber = htmlspecialchars($userQueue['order_number']);
+    $displayStatus = $userQueue['status'];
+    if (isset($userQueue['order_status']) && in_array($userQueue['order_status'], ['Ready', 'Cancelled'], true)) {
+        $displayStatus = $userQueue['order_status'];
+    }
+
+    if ($displayStatus === 'Ready') {
+        return '<span class="ready-badge">✓</span> Your order is READY! #' . $queueNumber . ' <br>Order: ' . $orderNumber;
+    }
+
+    if ($displayStatus === 'Cancelled') {
+        return '<span class="cancelled-badge">✗</span> Order Cancelled #' . $queueNumber . ' <br>Order: ' . $orderNumber;
+    }
+
+    return '#' . $queueNumber . ' - ' . ucfirst($displayStatus) . ' <br>Order: ' . $orderNumber;
+}
+
+function getQueueInfoHtml($userQueue) {
+    if (!$userQueue) {
+        return '<p>No active orders found.</p><p><strong>Note:</strong> Queue updates automatically every 5 seconds.</p>';
+    }
+
+    $orderStatus = $userQueue['status'];
+    if (isset($userQueue['order_status']) && in_array($userQueue['order_status'], ['Ready', 'Cancelled'], true)) {
+        $orderStatus = $userQueue['order_status'];
+    }
+    $orderType = $userQueue['order_type'] ?? 'Pickup';
+    $messageClass = '';
+    $message = '';
+
+    if ($orderStatus === 'Ready') {
+        $messageClass = 'ready-message';
+        if ($orderType === 'Pickup') {
+            $message = '<strong>Your order is READY for pickup!</strong> Please proceed to the counter.';
+        } elseif ($orderType === 'Dine In') {
+            $message = '<strong>Your order is READY!</strong> Please proceed to your table.';
+        } elseif ($orderType === 'Delivery') {
+            $message = '<strong>Your order is READY!</strong> Our delivery driver will be with you shortly.';
+        }
+    } elseif ($orderStatus === 'Cancelled') {
+        $messageClass = 'cancelled-message';
+        $message = '<strong>Order cancelled.</strong> If you have any questions, please contact our staff.';
+    } else {
+        if ($orderType === 'Pickup') {
+            $message = 'Your order is being prepared. We\'ll notify you when it\'s ready for pickup!';
+        } elseif ($orderType === 'Dine In') {
+            $message = 'Your order is being prepared. We\'ll notify you when it\'s ready to serve!';
+        } elseif ($orderType === 'Delivery') {
+            $message = 'Your order is being prepared. We\'ll notify you when it\'s ready for delivery!';
+        }
+    }
+
+    $classAttr = $messageClass ? ' class="' . $messageClass . '"' : '';
+
+    return '<p' . $classAttr . '>' . $message . '</p><p><strong>Note:</strong> Queue updates automatically every 5 seconds.</p>';
 }
 
 function updateOrderStatus($orderId, $status) {
     global $pdo;
+    $order = getOrderById($orderId);
+
     $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-    $stmt->execute([$status, $orderId]);
+    $success = $stmt->execute([$status, $orderId]);
+
+    if ($success && $status === 'Ready' && $order && $order['status'] !== 'Ready') {
+        // Update queue status to 'Serving' when order is Ready
+        $stmt = $pdo->prepare("UPDATE queue SET status = 'Serving' WHERE order_id = ?");
+        $stmt->execute([$orderId]);
+        sendOrderReadyEmail($orderId);
+    }
+
+    if ($success && $status === 'Cancelled' && $order && $order['status'] !== 'Cancelled') {
+        // Remove cancelled orders from the active queue display
+        $stmt = $pdo->prepare("UPDATE queue SET status = 'Cancelled' WHERE order_id = ?");
+        $stmt->execute([$orderId]);
+        sendOrderCancelledEmail($orderId);
+    }
+
+    return $success;
 }
 
 function getQueueOrders($status = null) {
@@ -351,7 +793,7 @@ function getAllUsers() {
 function getAllStaff() {
     global $pdo;
     $stmt = $pdo->query(
-        "SELECT s.id AS staff_id, u.id AS user_id, u.name, u.email, u.phone, u.role, s.position, s.department, s.hire_date, s.employment_status, s.created_at AS staff_created_at " .
+        "SELECT s.id AS staff_id, u.id AS user_id, u.name, u.email, u.phone, u.address, u.role, s.position, s.department, s.hire_date, s.employment_status, s.created_at AS staff_created_at " .
         "FROM staff s JOIN users u ON s.user_id = u.id ORDER BY s.created_at DESC"
     );
     return $stmt->fetchAll();
@@ -429,11 +871,22 @@ function getAnalyticsData($dateFrom = null, $dateTo = null) {
     $stmt->execute($params);
     $topProducts = $stmt->fetchAll();
 
+    // Order type counts for chart labels and report display
+    $stmt = $pdo->prepare("
+        SELECT order_type, COUNT(*) as count
+        FROM orders
+        $orderDateCondition
+        GROUP BY order_type
+    ");
+    $stmt->execute($params);
+    $orderTypeCounts = $stmt->fetchAll();
+
     return [
         'total_revenue' => $revenue,
         'order_count' => $orderCount,
         'avg_order_value' => $avgOrderValue,
-        'top_products' => $topProducts  
+        'top_products' => $topProducts,
+        'order_type_counts' => $orderTypeCounts
     ];
 }
 
@@ -751,6 +1204,7 @@ function completePendingOrder($pendingOrderId, $paymongoPaymentId = null, $paymo
         // Update user spending
         updateUserSpending($pendingOrder['user_id'], $pendingOrder['total_amount']);
         
+        sendOrderConfirmationEmail($orderId);
         return $orderId;
     }
     

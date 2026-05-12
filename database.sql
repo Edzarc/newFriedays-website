@@ -15,8 +15,33 @@ CREATE TABLE users (
     role ENUM('customer', 'staff', 'admin') NOT NULL DEFAULT 'customer',
     loyalty_tier ENUM('Bronze', 'Silver', 'Gold', 'Platinum') DEFAULT 'Bronze',
     total_spending DECIMAL(10,2) DEFAULT 0.00,
+    email_verified TINYINT(1) DEFAULT 0,
+    last_verification_email_sent TIMESTAMP DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Email verification tokens table
+CREATE TABLE email_verification_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(128) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Password reset tokens table
+CREATE TABLE password_reset_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(128) NOT NULL UNIQUE,
+    otp VARCHAR(6) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- User addresses table
@@ -30,17 +55,25 @@ CREATE TABLE user_addresses (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Products table
-CREATE TABLE products (
+-- Categories table
+CREATE TABLE categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    category ENUM('Chicken & Fried Items', 'Sides & Sandwiches', 'Beverages', 'Pasta & Mains') NOT NULL,
-    price DECIMAL(8,2) NOT NULL,
-    description TEXT,
-    image_url VARCHAR(1024) DEFAULT NULL,
-    is_available BOOLEAN DEFAULT 1,
+    name VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Products table
+        CREATE TABLE products (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            category_id INT NOT NULL,
+            price DECIMAL(8,2) NOT NULL,
+            description TEXT,
+            image_url VARCHAR(1024) DEFAULT NULL,
+            is_available BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (category_id) REFERENCES categories(id)
+        );
 
 -- Orders table
 CREATE TABLE orders (
@@ -48,7 +81,7 @@ CREATE TABLE orders (
   user_id int NOT NULL,f
   order_number varchar(20) NOT NULL,
   order_type enum('Pickup','Dine In','Delivery') NOT NULL,
-  payment_method enum('Cash on Delivery','GCash') NOT NULL,
+  payment_method enum('Cash','Cash on Delivery','GCash') NOT NULL,
   status enum('Pending','Preparing','Ready','Completed','Cancelled') DEFAULT 'Pending',
   payment_status enum('Pending','Paid','Failed','Cancelled') DEFAULT 'Pending',
   paymongo_payment_id varchar(255) DEFAULT NULL,
@@ -132,16 +165,23 @@ INSERT INTO loyalty_tiers (tier_name, discount_percentage, benefits, min_spendin
 ('Gold', 10.00, '10% discount on all orders, Free delivery, Priority queue', 5000.00),
 ('Platinum', 15.00, '15% discount on all orders, Free delivery, Priority queue, Exclusive menu items', 10000.00);
 
+-- Insert sample categories
+INSERT INTO categories (name) VALUES
+('Chicken & Fried Items'),
+('Sides & Sandwiches'),
+('Beverages'),
+('Pasta & Mains');
+
 -- Insert sample products
-INSERT INTO products (name, category, price, description, image_url) VALUES
-('Fried Chicken Bucket', 'Chicken & Fried Items', 250.00, 'Crispy fried chicken bucket with 8 pieces', NULL),
-('Chicken Nuggets', 'Chicken & Fried Items', 120.00, '12 pieces of golden chicken nuggets', NULL),
-('French Fries', 'Sides & Sandwiches', 80.00, 'Crispy golden french fries', NULL),
-('Chicken Sandwich', 'Sides & Sandwiches', 150.00, 'Grilled chicken sandwich with lettuce and mayo', NULL),
-('Coca Cola', 'Beverages', 45.00, 'Refreshing cola drink', NULL),
-('Iced Tea', 'Beverages', 40.00, 'Fresh brewed iced tea', NULL),
-('Spaghetti Carbonara', 'Pasta & Mains', 180.00, 'Creamy spaghetti with bacon and cheese', NULL),
-('Chicken Alfredo', 'Pasta & Mains', 200.00, 'Fettuccine alfredo with grilled chicken', NULL);
+INSERT INTO products (name, category_id, price, description, image_url) VALUES
+('Fried Chicken Bucket', 1, 250.00, 'Crispy fried chicken bucket with 8 pieces', NULL),
+('Chicken Nuggets', 1, 120.00, '12 pieces of golden chicken nuggets', NULL),
+('French Fries', 2, 80.00, 'Crispy golden french fries', NULL),
+('Chicken Sandwich', 2, 150.00, 'Grilled chicken sandwich with lettuce and mayo', NULL),
+('Coca Cola', 3, 45.00, 'Refreshing cola drink', NULL),
+('Iced Tea', 3, 40.00, 'Fresh brewed iced tea', NULL),
+('Spaghetti Carbonara', 4, 180.00, 'Creamy spaghetti with bacon and cheese', NULL),
+('Chicken Alfredo', 4, 200.00, 'Fettuccine alfredo with grilled chicken', NULL);
 
 -- Create admin user (password: admin123)
 INSERT INTO users (name, email, password_hash, phone, address, role, loyalty_tier) VALUES

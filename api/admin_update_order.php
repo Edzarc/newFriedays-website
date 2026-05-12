@@ -17,9 +17,7 @@ if (!$orderId || !$status) {
     exit();
 }
 
-global $pdo;
-$stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-$success = $stmt->execute([$status, $orderId]);
+$success = updateOrderStatus($orderId, $status);
 
 echo json_encode(['success' => $success]);
 ?>

@@ -279,7 +279,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (nextOrderBtn) nextOrderBtn.addEventListener('click', serveNextOrder);
     if (refreshQueueBtn) refreshQueueBtn.addEventListener('click', loadStaffQueue);
     if (processSelectedBtn) processSelectedBtn.addEventListener('click', processSelectedOrders);
-    if (selectAllBtn) selectAllBtn.addEventListener('click', toggleSelectAll);
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', () => toggleSelectAll('.queue-select'));
+    }
+    //if (selectAllBtn) selectAllBtn.addEventListener('click', toggleSelectAll);
 
     // Get references to new buttons
     const cancelSelectedBtn = document.getElementById('cancel-selected-btn');

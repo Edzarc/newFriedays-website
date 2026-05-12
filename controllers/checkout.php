@@ -23,6 +23,7 @@ function showCheckout() {
         $cartItems = json_decode($_POST['cart_items'], true);
         $orderType = sanitizeInput($_POST['order_type']);
         $paymentMethod = sanitizeInput($_POST['payment_method']);
+        $downloadReceipt = isset($_POST['download_receipt']) && $_POST['download_receipt'] === '1' ? true : false;
         $deliveryAddressId = isset($_POST['delivery_address_id']) ? intval($_POST['delivery_address_id']) : null;
         if ($deliveryAddressId === 0) {
             $deliveryAddressId = null;
@@ -33,6 +34,9 @@ function showCheckout() {
             include 'views/checkout.php';
             return;
         }
+
+        // Store receipt preference in session
+        $_SESSION['download_receipt'] = $downloadReceipt;
 
         $deliveryAddress = null;
         if ($orderType === 'Delivery') {
@@ -117,18 +121,18 @@ function showCheckout() {
                 return;
             }
         } else {
-            // Handle Cash on Delivery
+            // Handle Cash on Delivery and cash payment
             $orderId = createOrder($_SESSION['user_id'], $orderType, $paymentMethod, $totalAmount, $cartItems, $deliveryAddressId, $deliveryAddress);
 
             if ($orderId) {
                 // Update user spending with original subtotal for loyalty tracking
                 updateUserSpending($_SESSION['user_id'], $subtotal);
+                sendOrderConfirmationEmail($orderId);
 
-                // Clear cart (in session/localStorage handled by JS)
-                // Note: Since localStorage is client-side, we can't clear it here.
-                // The cart should be cleared on the client side after successful order.
-                header('Location: index.php?page=queue');
-                exit();
+                // Show success page and auto-download receipt if requested
+                $success = "Order placed successfully! Your receipt will download if requested.";
+                include 'views/payment_result.php';
+                return;
             } else {
                 $error = "Failed to create order. Please try again.";
                 include 'views/checkout.php';

@@ -1,5 +1,55 @@
 // Friedays Bocaue - Main JavaScript
 
+// Mobile menu toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    
+    if (mobileMenuToggle && navMenu) {
+        mobileMenuToggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+        
+        // Close menu when a link is clicked
+        const navLinks = navMenu.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                mobileMenuToggle.classList.remove('active');
+                navMenu.classList.remove('active');
+            });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('header')) {
+                mobileMenuToggle.classList.remove('active');
+                navMenu.classList.remove('active');
+            }
+        });
+    }
+
+    // Floating cart button for mobile
+    const cartSidebar = document.getElementById('cart-sidebar');
+    const floatingCartBtn = document.getElementById('floating-cart-btn');
+    
+    if (floatingCartBtn && cartSidebar) {
+        floatingCartBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            cartSidebar.classList.toggle('visible');
+        });
+        
+        // Close cart when clicking outside
+        document.addEventListener('click', function(event) {
+            const isClickInsideCart = event.target.closest('#cart-sidebar');
+            const isClickOnButton = event.target.closest('#floating-cart-btn');
+            if (!isClickInsideCart && !isClickOnButton && cartSidebar.classList.contains('visible')) {
+                cartSidebar.classList.remove('visible');
+            }
+        });
+    }
+});
+
 // Utility functions
 function showAlert(message, type = 'info') {
     // Simple alert for now - could be enhanced with toast notifications
@@ -78,6 +128,14 @@ class Cart {
         const cartCount = document.getElementById('cart-count');
         if (cartCount) {
             cartCount.textContent = this.getItemCount();
+        }
+
+        // Update floating cart badge
+        const floatingCartCount = document.getElementById('floating-cart-count');
+        if (floatingCartCount) {
+            const count = this.getItemCount();
+            floatingCartCount.textContent = count;
+            floatingCartCount.style.display = count > 0 ? 'flex' : 'none';
         }
 
         // Update cart items

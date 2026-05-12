@@ -7,6 +7,7 @@
 
                 <div class="product-actions">
                     <button class="btn btn-primary" id="add-product-btn">Add New Product</button>
+                    <button class="btn btn-info" id="manage-categories-btn">Manage Categories</button>
                     <div class="search-container">
                         <input type="text" id="product-search" placeholder="Search products...">
                     </div>
@@ -76,13 +77,12 @@
 
                 <div class="form-group">
                     <label for="product-category">Category *</label>
-                    <select id="product-category" name="category" required autocomplete="category">
-                        <option value="">Select Category</option>
-                        <option value="Chicken & Fried Items">Chicken & Fried Items</option>
-                        <option value="Sides & Sandwiches">Sides & Sandwiches</option>
-                        <option value="Beverages">Beverages</option>
-                        <option value="Pasta & Mains">Pasta & Mains</option>
-                    </select>
+                    <div class="category-input-group">
+                        <select id="product-category" name="category_id" required>
+                            <option value="">Select Category</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary btn-sm" id="add-new-category-btn">+ New</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -105,6 +105,42 @@
                     <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- New Category Modal -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 id="category-modal-title">New Category</h3>
+                <span class="close category-close">&times;</span>
+            </div>
+            <form id="category-form">
+                <div class="form-group">
+                    <label for="category-name">Category Name *</label>
+                    <input type="text" id="category-name" name="category_name" required placeholder="Enter category name">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Category</button>
+                    <button type="button" class="btn btn-secondary" id="category-cancel-btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manage Categories Modal -->
+    <div id="manage-categories-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Manage Categories</h3>
+                <span class="close manage-categories-close">&times;</span>
+            </div>
+            <div id="categories-list" style="max-height: 400px; overflow-y: auto;">
+                <!-- Categories will be populated here -->
+            </div>
+            <div class="form-actions" style="margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" id="manage-categories-close-btn">Close</button>
+            </div>
         </div>
     </div>
 

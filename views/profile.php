@@ -7,6 +7,20 @@
 
                 <div class="dashboard-grid">
                     <div class="dashboard-card">
+                        <h3>Loyalty Status</h3>
+                            <div class="loyalty-info">
+                            <div class="tier-badge tier-<?php echo strtolower($user['loyalty_tier']); ?>">
+                                <?php echo htmlspecialchars($user['loyalty_tier']); ?>
+                            </div>
+                            <p><strong>Total Spending:</strong> ₱<?php echo number_format($user['total_spending'], 2); ?></p>
+                            <p><strong>Benefits:</strong> <?php echo htmlspecialchars($loyaltyTier['benefits']); ?></p>
+                            <p><strong>Discount:</strong> <?php echo $loyaltyTier['discount_percentage']; ?>%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
                         <h3>Profile Information</h3>
                         <?php if (!empty($errors)): ?>
                             <div class="error-messages">
@@ -42,6 +56,33 @@
                             </div>
                             <button type="submit" class="btn btn-primary">Save Changes</button>
                         </form>
+        
+                        <h4 style="margin-top: 2rem;">Change Password</h4>
+                        <?php if (isset($_SESSION['change_password_token'])): ?>
+                            <p>A verification code has been sent to your email. Enter it below along with your new password.</p>
+                            <form method="post" class="profile-form">
+                                <input type="hidden" name="action" value="confirm_change_password">
+                                <div class="form-group">
+                                    <label for="otp">Verification Code</label>
+                                    <input type="text" id="otp" name="otp" required maxlength="6">
+                                </div>
+                                <div class="form-group">
+                                    <label for="new_password">New Password</label>
+                                    <input type="password" id="new_password" name="new_password" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirm_password">Confirm New Password</label>
+                                    <input type="password" id="confirm_password" name="confirm_password" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Change Password</button>
+                            </form>
+                        <?php else: ?>
+                            <p>Click the button below to receive a verification code via email to change your password.</p>
+                            <form method="post" class="profile-form">
+                                <input type="hidden" name="action" value="request_change_password_otp">
+                                <button type="submit" class="btn btn-primary">Request Password Change</button>
+                            </form>
+                        <?php endif; ?>
                     </div>
 
                     <div class="dashboard-card">
@@ -80,27 +121,18 @@
                             <button type="submit" class="btn btn-primary">Save Address</button>
                         </form>
                     </div>
+                </div>
 
-                    <div class="dashboard-card">
-                        <h3>Loyalty Status</h3>
-                        <div class="loyalty-info">
-                            <div class="tier-badge tier-<?php echo strtolower($user['loyalty_tier']); ?>">
-                                <?php echo htmlspecialchars($user['loyalty_tier']); ?>
-                            </div>
-                            <p><strong>Total Spending:</strong> ₱<?php echo number_format($user['total_spending'], 2); ?></p>
-                            <p><strong>Benefits:</strong> <?php echo htmlspecialchars($loyaltyTier['benefits']); ?></p>
-                            <p><strong>Discount:</strong> <?php echo $loyaltyTier['discount_percentage']; ?>%</p>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card">
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">                        
                         <h3>Quick Actions</h3>
                         <div class="quick-actions">
-                            <a href="index.php?page=menu" class="btn btn-primary">Order Now</a>
                             <a href="index.php?page=queue" class="btn btn-secondary">Check Queue</a>
                         </div>
                     </div>
                 </div>
+
+                
 
                 <div class="dashboard-card">
                     <h3>Explore Loyalty Tiers</h3>
