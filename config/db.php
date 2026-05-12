@@ -55,7 +55,7 @@ define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'Friedays Bocaue');
 
 // PayMongo API Configuration
 define('PAYMONGO_SECRET_KEY', getenv('PAYMONGO_SECRET_KEY') ?: '');
-define('PAYMONGO_PUBLIC_KEY', 'pk_test_7fb19JTL7YkYSWYmcBx6iGmG');
+define('PAYMONGO_PUBLIC_KEY', getenv('PAYMONGO_PUBLIC_KEY') ?: 'pk_test_7fb19JTL7YkYSWYmcBx6iGmG');
 define('PAYMONGO_BASE_URL', 'https://api.paymongo.com/v1');
 
 try {
