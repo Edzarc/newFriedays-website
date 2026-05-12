@@ -3,6 +3,35 @@
 // Use Philippines local time for both PHP and MySQL.
 date_default_timezone_set('Asia/Manila');
 
+// Load local .env file into environment variables if present.
+$dotenvPath = dirname(__DIR__) . '/.env';
+if (file_exists($dotenvPath)) {
+    $lines = file($dotenvPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || strpos($line, '#') === 0) {
+            continue;
+        }
+
+        if (preg_match('/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/', $line, $matches)) {
+            $name = $matches[1];
+            $value = $matches[2];
+
+            $first = substr($value, 0, 1);
+            $last = substr($value, -1);
+            if (($first === '"' && $last === '"') || ($first === "'" && $last === "'")) {
+                $value = substr($value, 1, -1);
+            }
+
+            if (getenv($name) === false) {
+                putenv("{$name}={$value}");
+                $_ENV[$name] = $value;
+                $_SERVER[$name] = $value;
+            }
+        }
+    }
+}
+
 // Local development database settings
 $localDb = [
     'host' => 'localhost',

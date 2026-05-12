@@ -47,7 +47,8 @@ function register() {
                 if (sendVerificationEmail($email, $name, $token)) {
                     updateLastVerificationEmailSent($userId);
                     $_SESSION['pending_verification_email'] = $email;
-                    header('Location: index.php?page=resend_verification');
+                    $_SESSION['register_success_message'] = 'Your account was successfully created. Please check your email for verification instructions.';
+                    header('Location: index.php?page=register');
                     exit();
                 } else {
                     $errors[] = 'Registration succeeded but verification email could not be sent. Please contact support.';
@@ -59,6 +60,12 @@ function register() {
 
         include 'views/register.php';
     } else {
+        $errors = [];
+        $verificationMessage = '';
+        if (isset($_SESSION['register_success_message'])) {
+            $verificationMessage = $_SESSION['register_success_message'];
+            unset($_SESSION['register_success_message']);
+        }
         include 'views/register.php';
     }
 }
