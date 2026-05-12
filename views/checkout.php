@@ -79,6 +79,15 @@
                                         <p>Please save a delivery address in your profile before choosing Delivery.</p>
                                     <?php endif; ?>
                                 </div>
+
+                                <div class="choice-block" style="margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+                                    <h4>Additional Options</h4>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" name="download_receipt" value="1">
+                                        <span>Download Digital Receipt</span>
+                                    </label>
+                                    <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">Your receipt will automatically download after successful payment.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
